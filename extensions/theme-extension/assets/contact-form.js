@@ -1235,168 +1235,344 @@
 
 // frontend emty 
 
+//DONE
+// document.addEventListener("DOMContentLoaded", async function () {
+
+//   /* ===================== SAFETY CHECK ===================== */
+//   if (!window.APP_CONFIG) {
+//     console.warn("APP_CONFIG missing");
+//     return;
+//   }
+
+//   const shopId = window.APP_CONFIG.shopId;
+//   const storeName = window.APP_CONFIG.storeName;
+
+//   const form = document.getElementById("simpleContactForm");
+//   const fieldsDiv = document.getElementById("shopifyFields");
+
+//   let mailSent = false;
+
+//   if (!form || !fieldsDiv) {
+//     console.warn("Form or fields container not found");
+//     return;
+//   }
+
+//   // ====== ADD LOADER ======
+//   const loader = document.createElement("div");
+//   loader.id = "shopifyLoader";
+// loader.style.display = "flex";
+// loader.style.alignItems = "center";
+// loader.style.justifyContent = "center";
+// loader.style.marginBottom = "10px";
+// loader.style.gap = "8px";
+// loader.style.height = "30px"; // ensure it has height
+// loader.innerHTML = `
+//   <div class="spinner" style="
+//     width: 18px;
+//     height: 18px;
+//     border: 3px solid #f3f3f3;
+//     border-top: 3px solid #555;
+//     border-radius: 50%;
+//     animation: spin 1s linear infinite;
+//   "></div>
+//   <span>Loading form...</span>
+// `;
+//   fieldsDiv.parentNode.insertBefore(loader, fieldsDiv);
+//   fieldsDiv.style.display = "none"; // hide fields until loaded
+//   form.querySelector(".submit-btn").style.display = "none"; // hide buttonz
+
+//   let ipAddress = "";
+//   let formTemplate = null;
+//   let whatsappNumber = null;
+
+//   /* ===================== REQUIRED STAR ===================== */
+//   const requiredStar = (f) =>
+//     f.required ? `<span style="color:red;margin-left:4px">*</span>` : "";
+
+//   /* ===================== 1️⃣ GET IP ===================== */
+//   try {
+//     const res = await fetch("https://api.ipify.org?format=json");
+//     const json = await res.json();
+//     ipAddress = json?.ip || "";
+//   } catch (err) {
+//     console.warn("IP fetch failed", err);
+//   }
+
+//   /* ===================== 2️⃣ LOAD BACKEND ===================== */
+//   try {
+//     const res = await fetch(`https://nodejs-qvgm.onrender.com/api/users/${shopId}`);
+//     const json = await res.json();
+
+//     formTemplate = json?.data?.formTemplates;
+//     mailSent = json?.data?.mailsent; 
+//     const code = (json?.data?.currencyCode || "").replace("+", "");
+//     const number = json?.data?.whatsappNumber || "";
+//     whatsappNumber = code && number ? `+${code}${number}` : number;
+//   } catch (err) {
+//     console.error("Backend error", err);
+//   }
+
+//   if (!formTemplate?.fields || !Array.isArray(formTemplate.fields)) {
+//     loader.innerText = "No fields found.";
+//     return;
+//   }
+
+//   /* ===================== 3️⃣ ENSURE FIELD IDS ===================== */
+//   formTemplate.fields.forEach((f, i) => {
+//     if (!f.id) f.id = `field_${i}`;
+//   });
+
+//   /* ===================== 4️⃣ BUILD FIELDS ===================== */
+//   formTemplate.fields.forEach(f => {
+//     const name = mailSent ? `contact[${f.type}]` : `${f.type}`;
+//     const required = f.required ? "required" : "";
+//     const placeholder = f.placeholder || "";
+//     let html = "";
+
+//     if (["text", "email", "tel", "url", "number", "date"].includes(f.type)) {
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <input id="${f.id}" type="${f.type}" name="${name}" ${required} placeholder="${placeholder}">
+//         </div>`;
+//     } else if (f.type === "textarea") {
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <textarea id="${f.id}" name="${name}" ${required} placeholder="${placeholder}"></textarea>
+//         </div>`;
+//     } else if (f.type === "select" || f.type === "dropdown") {
+//       const options = (f.options || []).map(opt => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `<option value="${val}">${val}</option>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <select id="${f.id}" name="${name}" ${required}>
+//             <option value="">-- Select ${f.label} --</option>
+//             ${options}
+//           </select>
+//         </div>`;
+//     } else if (f.type === "radio") {
+//       const radios = (f.options || []).map((opt, i) => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `
+//           <label>
+//             <input type="radio" name="${name}" value="${val}" ${required && i === 0 ? "required" : ""}>
+//             ${val}
+//           </label>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <div>${radios}</div>
+//         </div>`;
+//     } else if (f.type === "checkbox") {
+//       const checks = (f.options || []).map(opt => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `
+//           <label>
+//             <input type="checkbox" data-id="${f.id}" value="${val}">
+//             ${val}
+//           </label>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <div>${checks}</div>
+//         </div>`;
+//     }
+
+//     fieldsDiv.insertAdjacentHTML("beforeend", html);
+//   });
+
+//   // ===== SHOW FIELDS & BUTTON AFTER BUILD =====
+//   loader.style.display = "none";
+//   fieldsDiv.style.display = "block";
+//   form.querySelector(".submit-btn").style.display = "inline-block";
+
+//   /* ===================== 5️⃣ SUBMIT ===================== */
+//   form.addEventListener("submit", async function (e) {
+//     e.preventDefault();
+
+//     const dynamicData = {};
+//     let whatsappMsg = `Store: ${encodeURIComponent(storeName)}%0A`;
+
+//     formTemplate.fields.forEach(f => {
+//       let value = "";
+//       const el = document.getElementById(f.id);
+
+//       if (f.type === "checkbox") {
+//         value = [...document.querySelectorAll(`input[data-id="${f.id}"]:checked`)]
+//           .map(c => c.value)
+//           .join(", ");
+//       }
+//       else if (f.type === "radio") {
+//         const r = document.querySelector(`input[name="contact[${f.label}]"]:checked`);
+//         value = r ? r.value : "";
+//       }
+//       else if (el) {
+//         value = el.value;
+//       }
+
+//       if (!value) return;
+
+//       dynamicData[f.id] = {
+//         type: f.type,
+//         value
+//       };
+
+//       whatsappMsg += `${encodeURIComponent(f.label)}: ${encodeURIComponent(value)}%0A`;
+//     });
+
+//     /* ===================== 6️⃣ API BODY (SELECT → DROPDOWN FIX) ===================== */
+//     const apiData = {
+//       merchantId: `gid://shopify/Shop/${shopId}`,
+//       storeName,
+//       ipAddress
+//     };
+
+//     Object.keys(dynamicData).forEach(id => {
+//       const field = dynamicData[id];
+//       let key = field.type;
+//       if (key === "select") key = "dropdown";
+//       apiData[key] = field.value;
+//     });
+
+//     console.log("📤 API BODY", apiData);
+
+//     /* ===================== 7️⃣ WHATSAPP ===================== */
+//     if (whatsappNumber) {
+//       const waLink = `https://wa.me/${whatsappNumber}?text=${whatsappMsg}`;
+//       const tab = window.open("about:blank", "_blank");
+//       if (tab) tab.location.href = waLink;
+//     }
+
+//     /* ===================== 8️⃣ SEND BACKEND ===================== */
+//     try {
+//       await fetch("https://nodejs-qvgm.onrender.com/api/add-user", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(apiData)
+//       });
+//     } catch (err) {
+//       console.error("API error", err);
+//     }
+
+//     /* ===================== 9️⃣ SHOPIFY SUBMIT ===================== */
+//     setTimeout(() => form.submit(), 300);
+//   });
+
+// });
+
+
 
 document.addEventListener("DOMContentLoaded", async function () {
 
-  /* ===================== SAFETY CHECK ===================== */
-  if (!window.APP_CONFIG) {
-    console.warn("APP_CONFIG missing");
-    return;
-  }
+  if (!window.APP_CONFIG) return console.warn("APP_CONFIG missing");
 
   const shopId = window.APP_CONFIG.shopId;
   const storeName = window.APP_CONFIG.storeName;
 
   const form = document.getElementById("simpleContactForm");
   const fieldsDiv = document.getElementById("shopifyFields");
+  const formTitleDiv = document.getElementById("formTitle");
+  const formDescDiv = document.getElementById("formDescription");
+  const successDiv = document.getElementById("formSuccess"); // container for success message
 
   let mailSent = false;
+  if (!form || !fieldsDiv) return console.warn("Form or fields container not found");
 
-  if (!form || !fieldsDiv) {
-    console.warn("Form or fields container not found");
-    return;
-  }
-
-  // ====== ADD LOADER ======
+  // Loader
   const loader = document.createElement("div");
   loader.id = "shopifyLoader";
-loader.style.display = "flex";
-loader.style.alignItems = "center";
-loader.style.justifyContent = "center";
-loader.style.marginBottom = "10px";
-loader.style.gap = "8px";
-loader.style.height = "30px"; // ensure it has height
-loader.innerHTML = `
-  <div class="spinner" style="
-    width: 18px;
-    height: 18px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #555;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  "></div>
-  <span>Loading form...</span>
-`;
+  loader.style.display = "flex";
+  loader.style.alignItems = "center";
+  loader.style.justifyContent = "center";
+  loader.style.marginBottom = "10px";
+  loader.innerHTML = `<span>Loading form...</span>`;
   fieldsDiv.parentNode.insertBefore(loader, fieldsDiv);
-  fieldsDiv.style.display = "none"; // hide fields until loaded
-  form.querySelector(".submit-btn").style.display = "none"; // hide buttonz
+  fieldsDiv.style.display = "none";
+  form.querySelector(".submit-btn").style.display = "none";
 
   let ipAddress = "";
   let formTemplate = null;
   let whatsappNumber = null;
 
-  /* ===================== REQUIRED STAR ===================== */
-  const requiredStar = (f) =>
-    f.required ? `<span style="color:red;margin-left:4px">*</span>` : "";
-
-  /* ===================== 1️⃣ GET IP ===================== */
   try {
     const res = await fetch("https://api.ipify.org?format=json");
-    const json = await res.json();
-    ipAddress = json?.ip || "";
-  } catch (err) {
-    console.warn("IP fetch failed", err);
-  }
+    ipAddress = (await res.json())?.ip || "";
+  } catch (err) { console.warn("IP fetch failed", err); }
 
-  /* ===================== 2️⃣ LOAD BACKEND ===================== */
   try {
     const res = await fetch(`https://nodejs-qvgm.onrender.com/api/users/${shopId}`);
     const json = await res.json();
-
     formTemplate = json?.data?.formTemplates;
-    mailSent = json?.data?.mailsent; 
+    mailSent = json?.data?.mailsent;
     const code = (json?.data?.currencyCode || "").replace("+", "");
     const number = json?.data?.whatsappNumber || "";
     whatsappNumber = code && number ? `+${code}${number}` : number;
-  } catch (err) {
-    console.error("Backend error", err);
-  }
+  } catch (err) { console.error("Backend error", err); }
 
-  if (!formTemplate?.fields || !Array.isArray(formTemplate.fields)) {
+  if (!formTemplate?.fields?.length) {
     loader.innerText = "No fields found.";
     return;
   }
 
-  /* ===================== 3️⃣ ENSURE FIELD IDS ===================== */
-  formTemplate.fields.forEach((f, i) => {
-    if (!f.id) f.id = `field_${i}`;
-  });
+  // Show form title & description
+  if (formTitleDiv) formTitleDiv.innerText = formTemplate.name || "Contact Form";
+  if (formDescDiv) formDescDiv.innerText = formTemplate.description || "";
 
-  /* ===================== 4️⃣ BUILD FIELDS ===================== */
+  // Ensure IDs
+  formTemplate.fields.forEach((f, i) => { if (!f.id) f.id = `field_${i}`; });
+
+  // Build fields
+  const requiredStar = f => f.required ? "<span style='color:red'>*</span>" : "";
   formTemplate.fields.forEach(f => {
-    const name = mailSent ? `contact[${f.label}]` : `${f.label}`;
-    const required = f.required ? "required" : "";
+    const name = mailSent ? `contact[${f.type}]` : f.type;
     const placeholder = f.placeholder || "";
     let html = "";
 
-    if (["text", "email", "tel", "url", "number", "date"].includes(f.type)) {
-      html = `
-        <div class="form-group">
-          <label>${f.label} ${requiredStar(f)}</label>
-          <input id="${f.id}" type="${f.type}" name="${name}" ${required} placeholder="${placeholder}">
-        </div>`;
+    if (["text","email","tel","url","number","date"].includes(f.type)) {
+      html = `<div class="form-group">
+        <label>${f.label} ${requiredStar(f)}</label>
+        <input id="${f.id}" type="${f.type}" name="${name}" ${f.required?"required":""} placeholder="${placeholder}">
+      </div>`;
     } else if (f.type === "textarea") {
-      html = `
-        <div class="form-group">
-          <label>${f.label} ${requiredStar(f)}</label>
-          <textarea id="${f.id}" name="${name}" ${required} placeholder="${placeholder}"></textarea>
-        </div>`;
+      html = `<div class="form-group">
+        <label>${f.label} ${requiredStar(f)}</label>
+        <textarea id="${f.id}" name="${name}" ${f.required?"required":""} placeholder="${placeholder}"></textarea>
+      </div>`;
     } else if (f.type === "select" || f.type === "dropdown") {
-      const options = (f.options || []).map(opt => {
-        const val = typeof opt === "string" ? opt : (opt.value || opt.label);
-        return `<option value="${val}">${val}</option>`;
-      }).join("");
-
-      html = `
-        <div class="form-group">
-          <label>${f.label} ${requiredStar(f)}</label>
-          <select id="${f.id}" name="${name}" ${required}>
-            <option value="">-- Select ${f.label} --</option>
-            ${options}
-          </select>
-        </div>`;
+      const options = (f.options||[]).map(o => `<option value="${typeof o==="string"?o:o.value||o.label}">${typeof o==="string"?o:o.value||o.label}</option>`).join("");
+      html = `<div class="form-group">
+        <label>${f.label} ${requiredStar(f)}</label>
+        <select id="${f.id}" name="${name}" ${f.required?"required":""}>
+          <option value="">-- Select ${f.label} --</option>
+          ${options}
+        </select>
+      </div>`;
     } else if (f.type === "radio") {
-      const radios = (f.options || []).map((opt, i) => {
-        const val = typeof opt === "string" ? opt : (opt.value || opt.label);
-        return `
-          <label>
-            <input type="radio" name="${name}" value="${val}" ${required && i === 0 ? "required" : ""}>
-            ${val}
-          </label>`;
-      }).join("");
-
-      html = `
-        <div class="form-group">
-          <label>${f.label} ${requiredStar(f)}</label>
-          <div>${radios}</div>
-        </div>`;
+      const radios = (f.options||[]).map((o,i) => `<label><input type="radio" name="${name}" value="${typeof o==="string"?o:o.value||o.label}" ${f.required && i===0?"required":""}> ${typeof o==="string"?o:o.value||o.label}</label>`).join("");
+      html = `<div class="form-group"><label>${f.label} ${requiredStar(f)}</label><div>${radios}</div></div>`;
     } else if (f.type === "checkbox") {
-      const checks = (f.options || []).map(opt => {
-        const val = typeof opt === "string" ? opt : (opt.value || opt.label);
-        return `
-          <label>
-            <input type="checkbox" data-id="${f.id}" value="${val}">
-            ${val}
-          </label>`;
-      }).join("");
-
-      html = `
-        <div class="form-group">
-          <label>${f.label} ${requiredStar(f)}</label>
-          <div>${checks}</div>
-        </div>`;
+      const checks = (f.options||[]).map(o => `<label><input type="checkbox" data-id="${f.id}" value="${typeof o==="string"?o:o.value||o.label}"> ${typeof o==="string"?o:o.value||o.label}</label>`).join("");
+      html = `<div class="form-group"><label>${f.label} ${requiredStar(f)}</label><div>${checks}</div></div>`;
     }
 
     fieldsDiv.insertAdjacentHTML("beforeend", html);
   });
 
-  // ===== SHOW FIELDS & BUTTON AFTER BUILD =====
   loader.style.display = "none";
   fieldsDiv.style.display = "block";
   form.querySelector(".submit-btn").style.display = "inline-block";
 
-  /* ===================== 5️⃣ SUBMIT ===================== */
-  form.addEventListener("submit", async function (e) {
+  // Submit
+  form.addEventListener("submit", async function(e){
     e.preventDefault();
 
     const dynamicData = {};
@@ -1405,66 +1581,44 @@ loader.innerHTML = `
     formTemplate.fields.forEach(f => {
       let value = "";
       const el = document.getElementById(f.id);
-
       if (f.type === "checkbox") {
-        value = [...document.querySelectorAll(`input[data-id="${f.id}"]:checked`)]
-          .map(c => c.value)
-          .join(", ");
-      }
-      else if (f.type === "radio") {
-        const r = document.querySelector(`input[name="contact[${f.label}]"]:checked`);
+        value = [...document.querySelectorAll(`input[data-id="${f.id}"]:checked`)].map(c=>c.value).join(", ");
+      } else if (f.type === "radio") {
+        const r = document.querySelector(`input[name="${f.type}"]:checked`);
         value = r ? r.value : "";
-      }
-      else if (el) {
-        value = el.value;
-      }
+      } else if (el) value = el.value;
 
       if (!value) return;
-
-      dynamicData[f.id] = {
-        type: f.type,
-        value
-      };
-
+      dynamicData[f.id] = { type: f.type, value };
       whatsappMsg += `${encodeURIComponent(f.label)}: ${encodeURIComponent(value)}%0A`;
     });
 
-    /* ===================== 6️⃣ API BODY (SELECT → DROPDOWN FIX) ===================== */
-    const apiData = {
-      merchantId: `gid://shopify/Shop/${shopId}`,
-      storeName,
-      ipAddress
-    };
-
+    const apiData = { merchantId:`gid://shopify/Shop/${shopId}`, storeName, ipAddress };
     Object.keys(dynamicData).forEach(id => {
-      const field = dynamicData[id];
-      let key = field.type;
-      if (key === "select") key = "dropdown";
-      apiData[key] = field.value;
+      let key = dynamicData[id].type === "select" ? "dropdown" : dynamicData[id].type;
+      apiData[key] = dynamicData[id].value;
     });
 
-    console.log("📤 API BODY", apiData);
-
-    /* ===================== 7️⃣ WHATSAPP ===================== */
     if (whatsappNumber) {
       const waLink = `https://wa.me/${whatsappNumber}?text=${whatsappMsg}`;
-      const tab = window.open("about:blank", "_blank");
+      const tab = window.open("about:blank","_blank");
       if (tab) tab.location.href = waLink;
     }
 
-    /* ===================== 8️⃣ SEND BACKEND ===================== */
     try {
       await fetch("https://nodejs-qvgm.onrender.com/api/add-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
         body: JSON.stringify(apiData)
       });
-    } catch (err) {
-      console.error("API error", err);
+    } catch(err){ console.error("API error", err); }
+
+    // Hide form & show success message
+    form.style.display = "none";
+    if(successDiv){
+      successDiv.innerHTML = `<h2>${formTemplate.formSubmissionTitle || "Form submitted!"}</h2>
+                              <p>${formTemplate.successdescription || "Thank you for contacting us."}</p>`;
+      successDiv.style.display = "block";
     }
-
-    /* ===================== 9️⃣ SHOPIFY SUBMIT ===================== */
-    setTimeout(() => form.submit(), 300);
   });
-
 });

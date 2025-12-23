@@ -13,7 +13,7 @@
   "
 >
   
-  {% form 'contact', id: 'simpleContactForm' %}
+  {% comment %} {% form 'contact', id: 'simpleContactForm' %}
     {% if form.posted_successfully? %}
       <p class="success-msg">🎉 Thank you! We will contact you soon.</p>
     {% endif %}
@@ -31,7 +31,39 @@
 
     <button type="submit" class="submit-btn" style="display: none;">{{ block.settings.btn_label | default: "Submit" }}</button>    
   
-  {% endform %}
+  {% endform %} {% endcomment %}
+
+
+  {% form 'contact', id: 'simpleContactForm' %}
+
+  <!-- Pre-submit success or error messages -->
+  {% if form.posted_successfully? %}
+    <p class="success-msg">🎉 Thank you! We will contact you soon.</p>
+  {% endif %}
+
+  {% if form.errors %}
+    <p class="error-msg">⚠️ {{ form.errors | default_errors }}</p>
+  {% endif %}
+
+  <!-- Dynamic form title and description (JS will populate these) -->
+  <div id="formTitle"></div>
+  <div id="formDescription"></div>
+
+  <!-- Dynamic fields container (hidden until JS loads fields) -->
+  <div id="shopifyFields" style="display: none;"></div>
+
+  <!-- Loader (JS will populate) -->
+  
+  <!-- Submit button hidden until fields are loaded -->
+  <button type="submit" class="submit-btn" style="display: none;">
+    {{ block.settings.btn_label | default: "Submit" }}
+  </button>
+
+  <!-- Success message container after JS submission -->
+  <div id="formSuccess" style="display: none;"></div>
+
+{% endform %}
+
 </div>
 
 <script> 
@@ -102,7 +134,30 @@
       "id": "btn_text",
       "label": "Button text color",
       "default": "#ffffff"
-    }
+    },
+    {
+  "type": "range",
+  "id": "radius",
+  "label": "Border radius",
+  "min": 0,
+  "max": 30,
+  "step": 1,
+  "default": 8
+},{
+  "type": "color",
+  "id": "btn_hover",
+  "label": "Button hover color",
+  "default": "#333333"
+},
+{
+  "type": "range",
+  "id": "btn_font_size",
+  "label": "Button font size",
+  "min": 12,
+  "max": 22,
+  "step": 1,
+  "default": 15
+}
   ]
 }
 {% endschema %}
