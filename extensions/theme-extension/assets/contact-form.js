@@ -1,0 +1,1470 @@
+// document.addEventListener("DOMContentLoaded", async function () {
+
+
+
+//   /* ===================== SAFETY CHECK ===================== */
+//   if (!window.APP_CONFIG) {
+//     console.warn("APP_CONFIG missing");
+//     return;
+//   }
+
+//   const shopId = window.APP_CONFIG.shopId;
+//   const storeName = window.APP_CONFIG.storeName;
+
+//   const form = document.getElementById("simpleContactForm");
+//   const fieldsDiv = document.getElementById("shopifyFields");
+
+//   if (!form || !fieldsDiv) {
+//     console.warn("Form or fields container not found");
+//     return;
+//   }
+
+//   let ipAddress = "";
+//   let formTemplate = null;
+//   let whatsappNumber = null;
+
+//   /* ===================== REQUIRED STAR HELPER ===================== */
+//   const requiredStar = (f) =>
+//     f.required ? `<span style="color:red;margin-left:4px">*</span>` : "";
+
+//   /* ===================== 1️⃣ GET IP ===================== */
+//   try {
+//     const res = await fetch("https://api.ipify.org?format=json");
+//     const json = await res.json();
+//     ipAddress = json?.ip || "";
+//   } catch (err) {
+//     console.warn("IP fetch failed", err);
+//   }
+
+//   /* ===================== 2️⃣ LOAD BACKEND ===================== */
+//   try {
+//     // const res = await fetch(`https://nodejs-qvgm.onrender.com/api/users/${shopId}`);
+//     const res = await fetch(`http://localhost:5000/api/users/${shopId}`);
+//     const json = await res.json();
+
+//     formTemplate = json?.data?.formTemplates;
+
+//     const code = (json?.data?.currencyCode || "").replace("+", "");
+//     const number = json?.data?.whatsappNumber || "";
+//     whatsappNumber = code && number ? `+${code}${number}` : number;
+
+//   } catch (err) {
+//     console.error("Backend error", err);
+//   }
+
+//   if (!formTemplate?.fields || !Array.isArray(formTemplate.fields)) {
+//     console.warn("No fields found");
+//     return;
+//   }
+
+//   /* ===================== 3️⃣ ENSURE FIELD IDS ===================== */
+//   formTemplate.fields.forEach((f, i) => {
+//     if (!f.id) f.id = `field_${i}`;
+//   });
+
+//   /* ===================== 4️⃣ BUILD FIELDS ===================== */
+//   formTemplate.fields.forEach(f => {
+
+//     const name = `contact[${f.label}]`;
+
+//     const required = f.required ? "required" : "";
+//     const placeholder = f.placeholder || "";
+//     let html = "";
+
+//     /* ---- INPUT ---- */
+//     if (["text", "email", "tel", "url", "number", "date"].includes(f.type)) {
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <input id="${f.id}" type="${f.type}" name="${name}" ${required} placeholder="${placeholder}">
+//         </div>`;
+//     }
+
+//     /* ---- TEXTAREA ---- */
+//     else if (f.type === "textarea") {
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <textarea id="${f.id}" name="${name}" ${required} placeholder="${placeholder}"></textarea>
+//         </div>`;
+//     }
+
+//     /* ---- SELECT / DROPDOWN ---- */
+//     else if (["dropdown", "select"].includes(f.type)) {
+//       const options = (f.options || []).map(opt => {
+//         const value = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         const label = typeof opt === "string" ? opt : (opt.label || opt.value);
+//         return `<option value="${value}">${label}</option>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <select id="${f.id}" name="${name}" ${required}>
+//             <option value="">-- Select ${f.label} --</option>
+//             ${options}
+//           </select>
+//         </div>`;
+//     }
+
+//     /* ---- RADIO ---- */
+//     else if (f.type === "radio") {
+//       const radios = (f.options || []).map((opt, i) => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `
+//           <label>
+//             <input type="radio" name="${name}" value="${val}" ${required && i === 0 ? "required" : ""}>
+//             ${val}
+//           </label>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <div>${radios}</div>
+//         </div>`;
+//     }
+
+//     /* ---- CHECKBOX ---- */
+//     else if (f.type === "checkbox") {
+//       const checks = (f.options || []).map(opt => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `
+//           <label>
+//             <input type="checkbox" data-id="${f.id}" value="${val}">
+//             ${val}
+//           </label>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <div>${checks}</div>
+//         </div>`;
+//     }
+
+//     fieldsDiv.insertAdjacentHTML("beforeend", html);
+//   });
+
+//   /* ===================== 5️⃣ SUBMIT HANDLER ===================== */
+//   form.addEventListener("submit", async function (e) {
+//     e.preventDefault();
+
+//     const dynamicData = {};
+//     let whatsappMsg = `Store: ${encodeURIComponent(storeName)}%0A`;
+
+//     formTemplate.fields.forEach(f => {
+//       let value = "";
+
+//       if (f.type === "checkbox") {
+//         value = [...document.querySelectorAll(`input[data-id="${f.id}"]:checked`)]
+//           .map(c => c.value).join(", ");
+//       }
+//       else if (f.type === "radio") {
+//         const r = document.querySelector(`input[name="contact[${f.label}]"]:checked`);
+//         value = r ? r.value : "";
+//       }
+//       else {
+//         const el = document.getElementById(f.id);
+//         value = el ? el.value : "";
+//       }
+
+//       if (value) {
+//         dynamicData[f.id] = value;
+//         whatsappMsg += `${encodeURIComponent(f.label)}: ${encodeURIComponent(value)}%0A`;
+//       }
+//     });
+
+//     /* ===================== 6️⃣ API BODY MAP ===================== */
+//     const map = {};
+//     formTemplate.fields.forEach(f => {
+//       const l = f.label.toLowerCase();
+//       if (l.includes("name")) map[f.id] = "name";
+//       else if (l.includes("email")) map[f.id] = "email";
+//       else if (l.includes("phone")) map[f.id] = "phone";
+//       else if (l.includes("message")) map[f.id] = "message";
+//       else if (l.includes("country")) map[f.id] = "country";
+//       else if (l.includes("subject")) map[f.id] = "subject";
+//       else if (l.includes("select")) map[f.id] = "dropdown";
+
+//       else map[f.id] = f.type;
+//     });
+
+//     const apiData = {
+//       merchantId: `gid://shopify/Shop/${shopId}`,
+//       storeName,
+//       ipAddress
+//     };
+
+//     Object.keys(dynamicData).forEach(id => {
+//       apiData[map[id]] = dynamicData[id];
+//     });
+
+//     console.log("📤 API BODY", apiData);
+
+//     /* ===================== 7️⃣ WHATSAPP ===================== */
+//     if (whatsappNumber) {
+//       const waLink = `https://wa.me/${whatsappNumber}?text=${whatsappMsg}`;
+//       const tab = window.open("about:blank", "_blank");
+//       if (tab) tab.location.href = waLink;
+//     }
+
+//     /* ===================== 8️⃣ SEND BACKEND ===================== */
+//     try {
+//       // await fetch("https://nodejs-qvgm.onrender.com/api/add-user", {
+//       await fetch("http://localhost:5000/api/add-user", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(apiData)
+//       });
+//     } catch (err) {
+//       console.error("API error", err);
+//     }
+
+//     /* ===================== 9️⃣ SHOPIFY SUBMIT ===================== */
+//     setTimeout(() => form.submit(), 300);
+//   });
+
+// });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// document.addEventListener("DOMContentLoaded", async function () {
+
+//   /* ===================== SAFETY CHECK ===================== */
+//   if (!window.APP_CONFIG) {
+//     console.warn("APP_CONFIG missing");
+//     return;
+//   }
+
+//   const shopId = window.APP_CONFIG.shopId;
+//   const storeName = window.APP_CONFIG.storeName;
+
+//   const form = document.getElementById("simpleContactForm");
+//   const fieldsDiv = document.getElementById("shopifyFields");
+
+//   if (!form || !fieldsDiv) {
+//     console.warn("Form or fields container not found");
+//     return;
+//   }
+
+//   let ipAddress = "";
+//   let formTemplate = null;
+//   let whatsappNumber = null;
+
+//   /* ===================== REQUIRED STAR HELPER ===================== */
+//   const requiredStar = (f) =>
+//     f.required ? `<span style="color:red;margin-left:4px">*</span>` : "";
+
+//   /* ===================== 1️⃣ GET IP ===================== */
+//   try {
+//     const res = await fetch("https://api.ipify.org?format=json");
+//     const json = await res.json();
+//     ipAddress = json?.ip || "";
+//   } catch (err) {
+//     console.warn("IP fetch failed", err);
+//   }
+
+//   /* ===================== 2️⃣ LOAD BACKEND ===================== */
+//   try {
+//     const res = await fetch(`http://localhost:5000/api/users/${shopId}`);
+//     const json = await res.json();
+
+//     formTemplate = json?.data?.formTemplates;
+
+//     const code = (json?.data?.currencyCode || "").replace("+", "");
+//     const number = json?.data?.whatsappNumber || "";
+//     whatsappNumber = code && number ? `+${code}${number}` : number;
+
+//   } catch (err) {
+//     console.error("Backend error", err);
+//   }
+
+//   if (!formTemplate?.fields || !Array.isArray(formTemplate.fields)) {
+//     console.warn("No fields found");
+//     return;
+//   }
+
+//   /* ===================== 3️⃣ ENSURE FIELD IDS ===================== */
+//   formTemplate.fields.forEach((f, i) => {
+//     if (!f.id) f.id = `field_${i}`;
+//   });
+
+//   /* ===================== 4️⃣ BUILD FIELDS ===================== */
+//   formTemplate.fields.forEach(f => {
+
+//     const name = `contact[${f.label}]`;
+//     const required = f.required ? "required" : "";
+//     const placeholder = f.placeholder || "";
+//     let html = "";
+
+//     /* ---- INPUT ---- */
+//     if (["text", "email", "tel", "url", "number", "date"].includes(f.type)) {
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <input id="${f.id}" type="${f.type}" name="${name}" ${required} placeholder="${placeholder}">
+//         </div>`;
+//     }
+
+//     /* ---- TEXTAREA ---- */
+//     else if (f.type === "textarea") {
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <textarea id="${f.id}" name="${name}" ${required} placeholder="${placeholder}"></textarea>
+//         </div>`;
+//     }
+
+//     /* ---- DROPDOWN / SELECT ---- */
+//     else if (f.type === "select" || f.type === "dropdown") {
+//       const options = (f.options || []).map(opt => {
+//         const value = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         const label = typeof opt === "string" ? opt : (opt.label || opt.value);
+//         return `<option value="${value}">${label}</option>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <select 
+//             id="${f.id}" 
+//             name="${name}" 
+//             data-backend-key="dropdown"
+//             ${required}
+//           >
+//             <option value="">-- Select ${f.label} --</option>
+//             ${options}
+//           </select>
+//         </div>`;
+//     }
+
+//     /* ---- RADIO ---- */
+//     else if (f.type === "radio") {
+//       const radios = (f.options || []).map((opt, i) => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `
+//           <label>
+//             <input type="radio" name="${name}" value="${val}" ${required && i === 0 ? "required" : ""}>
+//             ${val}
+//           </label>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <div>${radios}</div>
+//         </div>`;
+//     }
+
+//     /* ---- CHECKBOX ---- */
+//     else if (f.type === "checkbox") {
+//       const checks = (f.options || []).map(opt => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `
+//           <label>
+//             <input type="checkbox" data-id="${f.id}" value="${val}">
+//             ${val}
+//           </label>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <div>${checks}</div>
+//         </div>`;
+//     }
+
+//     fieldsDiv.insertAdjacentHTML("beforeend", html);
+//   });
+
+//   /* ===================== 5️⃣ SUBMIT HANDLER ===================== */
+//   form.addEventListener("submit", async function (e) {
+//     e.preventDefault();
+
+//     const dynamicData = {};
+//     let whatsappMsg = `Store: ${encodeURIComponent(storeName)}%0A`;
+
+//     formTemplate.fields.forEach(f => {
+//       let value = "";
+//       const el = document.getElementById(f.id);
+
+//       if (f.type === "checkbox") {
+//         value = [...document.querySelectorAll(`input[data-id="${f.id}"]:checked`)]
+//           .map(c => c.value).join(", ");
+//       }
+//       else if (f.type === "radio") {
+//         const r = document.querySelector(`input[name="contact[${f.label}]"]:checked`);
+//         value = r ? r.value : "";
+//       }
+//       else if (el) {
+//         value = el.value;
+//       }
+
+//       if (!value) return;
+
+//       /* ✅ DROPDOWN ALWAYS FIXED */
+//       if (el?.dataset.backendKey === "dropdown") {
+//         dynamicData["dropdown"] = value;
+//         whatsappMsg += `dropdown: ${encodeURIComponent(value)}%0A`;
+//       } else {
+//         dynamicData[f.id] = value;
+//         whatsappMsg += `${encodeURIComponent(f.label)}: ${encodeURIComponent(value)}%0A`;
+//       }
+//     });
+
+//     /* ===================== 6️⃣ API BODY MAP ===================== */
+//     const map = {};
+//     formTemplate.fields.forEach(f => {
+//       const l = f.label.toLowerCase();
+//       if (l.includes("name")) map[f.id] = "name";
+//       else if (l.includes("email")) map[f.id] = "email";
+//       else if (l.includes("phone")) map[f.id] = "phone";
+//       else if (l.includes("message")) map[f.id] = "message";
+//       else if (l.includes("country")) map[f.id] = "country";
+//       else if (l.includes("subject")) map[f.id] = "subject";
+//       else map[f.id] = f.type;
+//     });
+
+//     // ✅ HARD SAFETY
+//     map["dropdown"] = "dropdown";
+//     map["select"] = "dropdown";
+
+//     const apiData = {
+//       merchantId: `gid://shopify/Shop/${shopId}`,
+//       storeName,
+//       ipAddress
+//     };
+
+//     Object.keys(dynamicData).forEach(key => {
+//       apiData[map[key] || key] = dynamicData[key];
+//     });
+
+//     console.log("📤 API BODY", apiData);
+
+//     /* ===================== 7️⃣ WHATSAPP ===================== */
+//     if (whatsappNumber) {
+//       const waLink = `https://wa.me/${whatsappNumber}?text=${whatsappMsg}`;
+//       const tab = window.open("about:blank", "_blank");
+//       if (tab) tab.location.href = waLink;
+//     }
+
+//     /* ===================== 8️⃣ SEND BACKEND ===================== */
+//     try {
+//       await fetch("http://localhost:5000/api/add-user", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(apiData)
+//       });
+//     } catch (err) {
+//       console.error("API error", err);
+//     }
+
+//     /* ===================== 9️⃣ SHOPIFY SUBMIT ===================== */
+//     setTimeout(() => form.submit(), 300);
+//   });
+
+// });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// document.addEventListener("DOMContentLoaded", async function () {
+
+//   /* ===================== SAFETY CHECK ===================== */
+//   if (!window.APP_CONFIG) {
+//     console.warn("APP_CONFIG missing");
+//     return;
+//   }
+
+//   const shopId = window.APP_CONFIG.shopId;
+//   const storeName = window.APP_CONFIG.storeName;
+
+//   const form = document.getElementById("simpleContactForm");
+//   const fieldsDiv = document.getElementById("shopifyFields");
+
+//   if (!form || !fieldsDiv) {
+//     console.warn("Form or fields container not found");
+//     return;
+//   }
+
+//   let ipAddress = "";
+//   let formTemplate = null;
+//   let whatsappNumber = null;
+
+//   /* ===================== REQUIRED STAR HELPER ===================== */
+//   const requiredStar = (f) =>
+//     f.required ? `<span style="color:red;margin-left:4px">*</span>` : "";
+
+//   /* ===================== 1️⃣ GET IP ===================== */
+//   try {
+//     const res = await fetch("https://api.ipify.org?format=json");
+//     const json = await res.json();
+//     ipAddress = json?.ip || "";
+//   } catch (err) {
+//     console.warn("IP fetch failed", err);
+//   }
+
+//   /* ===================== 2️⃣ LOAD BACKEND ===================== */
+//   try {
+//     const res = await fetch(`http://localhost:5000/api/users/${shopId}`);
+//     const json = await res.json();
+
+//     formTemplate = json?.data?.formTemplates;
+
+//     const code = (json?.data?.currencyCode || "").replace("+", "");
+//     const number = json?.data?.whatsappNumber || "";
+//     whatsappNumber = code && number ? `+${code}${number}` : number;
+
+//   } catch (err) {
+//     console.error("Backend error", err);
+//   }
+
+//   if (!formTemplate?.fields || !Array.isArray(formTemplate.fields)) {
+//     console.warn("No fields found");
+//     return;
+//   }
+
+//   /* ===================== 3️⃣ ENSURE FIELD IDS ===================== */
+//   formTemplate.fields.forEach((f, i) => {
+//     if (!f.id) f.id = `field_${i}`;
+//   });
+
+//   /* ===================== 4️⃣ BUILD FIELDS ===================== */
+//   formTemplate.fields.forEach(f => {
+
+//     const name = `contact[${f.label}]`;
+//     const required = f.required ? "required" : "";
+//     const placeholder = f.placeholder || "";
+//     let html = "";
+
+//     /* ---- INPUT ---- */
+//     if (["text", "email", "tel", "url", "number", "date"].includes(f.type)) {
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <input id="${f.id}" type="${f.type}" name="${name}" ${required} placeholder="${placeholder}">
+//         </div>`;
+//     }
+
+//     /* ---- TEXTAREA ---- */
+//     else if (f.type === "textarea") {
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <textarea id="${f.id}" name="${name}" ${required} placeholder="${placeholder}"></textarea>
+//         </div>`;
+//     }
+
+//     /* ---- DROPDOWN / SELECT ---- */
+//     else if (f.type === "select" || f.type === "dropdown") {
+//       const options = (f.options || []).map(opt => {
+//         const value = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         const label = typeof opt === "string" ? opt : (opt.label || opt.value);
+//         return `<option value="${value}">${label}</option>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <select 
+//             id="${f.id}" 
+//             name="${name}" 
+//             ${required}
+//           >
+//             <option value="">-- Select ${f.label} --</option>
+//             ${options}
+//           </select>
+//         </div>`;
+//     }
+
+//     /* ---- RADIO ---- */
+//     else if (f.type === "radio") {
+//       const radios = (f.options || []).map((opt, i) => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `
+//           <label>
+//             <input type="radio" name="${name}" value="${val}" ${required && i === 0 ? "required" : ""}>
+//             ${val}
+//           </label>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <div>${radios}</div>
+//         </div>`;
+//     }
+
+//     /* ---- CHECKBOX ---- */
+//     else if (f.type === "checkbox") {
+//       const checks = (f.options || []).map(opt => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `
+//           <label>
+//             <input type="checkbox" data-id="${f.id}" value="${val}">
+//             ${val}
+//           </label>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <div>${checks}</div>
+//         </div>`;
+//     }
+
+//     fieldsDiv.insertAdjacentHTML("beforeend", html);
+//   });
+
+//   /* ===================== 5️⃣ SUBMIT HANDLER ===================== */
+//   form.addEventListener("submit", async function (e) {
+//     e.preventDefault();
+
+//     const dynamicData = {};
+//     let whatsappMsg = `Store: ${encodeURIComponent(storeName)}%0A`;
+
+//     formTemplate.fields.forEach(f => {
+//       let value = "";
+//       const el = document.getElementById(f.id);
+
+//       if (f.type === "checkbox") {
+//         value = [...document.querySelectorAll(`input[data-id="${f.id}"]:checked`)]
+//           .map(c => c.value).join(", ");
+//       }
+//       else if (f.type === "radio") {
+//         const r = document.querySelector(`input[name="contact[${f.label}]"]:checked`);
+//         value = r ? r.value : "";
+//       }
+//       else if (el) {
+//         value = el.value;
+//       }
+
+//       if (!value) return;
+
+//       // Store with field metadata for later mapping
+//       dynamicData[f.id] = {
+//         value: value,
+//         label: f.label,
+//         type: f.type
+//       };
+
+//       whatsappMsg += `${encodeURIComponent(f.label)}: ${encodeURIComponent(value)}%0A`;
+//     });
+
+//     /* ===================== 6️⃣ API BODY MAP ===================== */
+//     const apiData = {
+//       merchantId: `gid://shopify/Shop/${shopId}`,
+//       storeName,
+//       ipAddress
+//     };
+
+//     // Map each field based on its label or type
+//     Object.keys(dynamicData).forEach(fieldId => {
+//       const field = dynamicData[fieldId];
+//       const label = field.label.toLowerCase();
+//       const value = field.value;
+
+//       // Check label for semantic meaning
+//       if (label.includes("name")) {
+//         apiData.name = value;
+//       } else if (label.includes("email")) {
+//         apiData.email = value;
+//       } else if (label.includes("phone") || label.includes("number") || label.includes("mobile")) {
+//         apiData.phone = value;
+//       } else if (label.includes("message")) {
+//         apiData.message = value;
+//       } else if (label.includes("country")) {
+//         apiData.country = value;
+//       } else if (label.includes("subject")) {
+//         apiData.subject = value;
+//       } 
+//       // Fall back to field type
+//       else if (field.type === "select" || field.type === "dropdown") {
+//         apiData.dropdown = value;
+//       } else if (field.type === "textarea") {
+//         apiData.textarea = value;
+//       } else if (field.type === "radio") {
+//         apiData.radio = value;
+//       } else if (field.type === "checkbox") {
+//         apiData.checkbox = value;
+//       } else if (field.type === "text") {
+//         apiData.text = value;
+//       } else {
+//         // Last resort - use field type as key
+//         apiData[field.type] = value;
+//       }
+//     });
+
+//     console.log("📤 API BODY", apiData);
+
+//     /* ===================== 7️⃣ WHATSAPP ===================== */
+//     if (whatsappNumber) {
+//       const waLink = `https://wa.me/${whatsappNumber}?text=${whatsappMsg}`;
+//       const tab = window.open("about:blank", "_blank");
+//       if (tab) tab.location.href = waLink;
+//     }
+
+//     /* ===================== 8️⃣ SEND BACKEND ===================== */
+//     try {
+//       await fetch("http://localhost:5000/api/add-user", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(apiData)
+//       });
+//     } catch (err) {
+//       console.error("API error", err);
+//     }
+
+//     /* ===================== 9️⃣ SHOPIFY SUBMIT ===================== */
+//     setTimeout(() => form.submit(), 300);
+//   });
+
+// });
+
+
+
+
+// document.addEventListener("DOMContentLoaded", async function () {
+
+//   /* ===================== SAFETY CHECK ===================== */
+//   if (!window.APP_CONFIG) {
+//     console.warn("APP_CONFIG missing");
+//     return;
+//   }
+
+//   const shopId = window.APP_CONFIG.shopId;
+//   const storeName = window.APP_CONFIG.storeName;
+
+//   const form = document.getElementById("simpleContactForm");
+//   const fieldsDiv = document.getElementById("shopifyFields");
+
+//   if (!form || !fieldsDiv) {
+//     console.warn("Form or fields container not found");
+//     return;
+//   }
+
+//   let ipAddress = "";
+//   let formTemplate = null;
+//   let whatsappNumber = null;
+
+//   /* ===================== REQUIRED STAR ===================== */
+//   const requiredStar = (f) =>
+//     f.required ? `<span style="color:red;margin-left:4px">*</span>` : "";
+
+//   /* ===================== 1️⃣ GET IP ===================== */
+//   try {
+//     const res = await fetch("https://api.ipify.org?format=json");
+//     const json = await res.json();
+//     ipAddress = json?.ip || "";
+//   } catch (err) {
+//     console.warn("IP fetch failed", err);
+//   }
+
+//   /* ===================== 2️⃣ LOAD BACKEND ===================== */
+//   try {
+//     const res = await fetch(`http://localhost:5000/api/users/${shopId}`);
+//     const json = await res.json();
+
+//     formTemplate = json?.data?.formTemplates;
+
+//     const code = (json?.data?.currencyCode || "").replace("+", "");
+//     const number = json?.data?.whatsappNumber || "";
+//     whatsappNumber = code && number ? `+${code}${number}` : number;
+
+//   } catch (err) {
+//     console.error("Backend error", err);
+//   }
+
+//   if (!formTemplate?.fields || !Array.isArray(formTemplate.fields)) {
+//     console.warn("No fields found");
+//     return;
+//   }
+
+//   /* ===================== 3️⃣ ENSURE FIELD IDS ===================== */
+//   formTemplate.fields.forEach((f, i) => {
+//     if (!f.id) f.id = `field_${i}`;
+//   });
+
+//   /* ===================== 4️⃣ BUILD FIELDS ===================== */
+//   formTemplate.fields.forEach(f => {
+
+//     const name = `contact[${f.label}]`;
+//     const required = f.required ? "required" : "";
+//     const placeholder = f.placeholder || "";
+//     let html = "";
+
+//     /* ---- INPUT ---- */
+//     if (["text", "email", "tel", "url", "number", "date"].includes(f.type)) {
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <input id="${f.id}" type="${f.type}" name="${name}" ${required} placeholder="${placeholder}">
+//         </div>`;
+//     }
+
+//     /* ---- TEXTAREA ---- */
+//     else if (f.type === "textarea") {
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <textarea id="${f.id}" name="${name}" ${required} placeholder="${placeholder}"></textarea>
+//         </div>`;
+//     }
+
+//     /* ---- SELECT / DROPDOWN ---- */
+//     else if (f.type === "select" || f.type === "dropdown") {
+//       const options = (f.options || []).map(opt => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `<option value="${val}">${val}</option>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <select id="${f.id}" name="${name}" ${required}>
+//             <option value="">-- Select ${f.label} --</option>
+//             ${options}
+//           </select>
+//         </div>`;
+//     }
+
+//     /* ---- RADIO ---- */
+//     else if (f.type === "radio") {
+//       const radios = (f.options || []).map((opt, i) => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `
+//           <label>
+//             <input type="radio" name="${name}" value="${val}" ${required && i === 0 ? "required" : ""}>
+//             ${val}
+//           </label>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <div>${radios}</div>
+//         </div>`;
+//     }
+
+//     /* ---- CHECKBOX ---- */
+//     else if (f.type === "checkbox") {
+//       const checks = (f.options || []).map(opt => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `
+//           <label>
+//             <input type="checkbox" data-id="${f.id}" value="${val}">
+//             ${val}
+//           </label>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <div>${checks}</div>
+//         </div>`;
+//     }
+
+//     fieldsDiv.insertAdjacentHTML("beforeend", html);
+//   });
+
+//   /* ===================== 5️⃣ SUBMIT ===================== */
+//   form.addEventListener("submit", async function (e) {
+//     e.preventDefault();
+
+//     const dynamicData = {};
+//     let whatsappMsg = `Store: ${encodeURIComponent(storeName)}%0A`;
+
+//     formTemplate.fields.forEach(f => {
+//       let value = "";
+//       const el = document.getElementById(f.id);
+
+//       if (f.type === "checkbox") {
+//         value = [...document.querySelectorAll(`input[data-id="${f.id}"]:checked`)]
+//           .map(c => c.value)
+//           .join(", ");
+//       }
+//       else if (f.type === "radio") {
+//         const r = document.querySelector(`input[name="contact[${f.label}]"]:checked`);
+//         value = r ? r.value : "";
+//       }
+//       else if (el) {
+//         value = el.value;
+//       }
+
+//       if (!value) return;
+
+//       dynamicData[f.id] = {
+//         type: f.type,
+//         value: value
+//       };
+
+//       whatsappMsg += `${encodeURIComponent(f.label)}: ${encodeURIComponent(value)}%0A`;
+//     });
+
+//     /* ===================== 6️⃣ API BODY (TYPE → VALUE) ===================== */
+//     const apiData = {
+//       merchantId: `gid://shopify/Shop/${shopId}`,
+//       storeName,
+//       ipAddress
+//     };
+
+//     Object.keys(dynamicData).forEach(id => {
+//       const field = dynamicData[id];
+
+//       let key = field.type;
+
+//       if (field.type === "select") {
+//         key = "dropdown";   // <-- select ne dropdown banavi didhu
+//       }
+
+
+//       apiData[field.type] = field.value;
+//     });
+
+//     console.log("📤 API BODY", apiData);
+
+//     /* ===================== 7️⃣ WHATSAPP ===================== */
+//     if (whatsappNumber) {
+//       const waLink = `https://wa.me/${whatsappNumber}?text=${whatsappMsg}`;
+//       const tab = window.open("about:blank", "_blank");
+//       if (tab) tab.location.href = waLink;
+//     }
+
+//     /* ===================== 8️⃣ SEND BACKEND ===================== */
+//     try {
+//       await fetch("http://localhost:5000/api/add-user", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(apiData)
+//       });
+//     } catch (err) {
+//       console.error("API error", err);
+//     }
+
+//     /* ===================== 9️⃣ SHOPIFY SUBMIT ===================== */
+//     setTimeout(() => form.submit(), 300);
+//   });
+
+// });
+
+
+
+//parfcat working
+
+// document.addEventListener("DOMContentLoaded", async function () {
+
+//   /* ===================== SAFETY CHECK ===================== */
+//   if (!window.APP_CONFIG) {
+//     console.warn("APP_CONFIG missing");
+//     return;
+//   }
+
+//   const shopId = window.APP_CONFIG.shopId;
+//   const storeName = window.APP_CONFIG.storeName;
+
+//   const form = document.getElementById("simpleContactForm");
+//   const fieldsDiv = document.getElementById("shopifyFields");
+
+//   let  mailSent = false;
+
+//   if (!form || !fieldsDiv) {
+//     console.warn("Form or fields container not found");
+//     return;
+//   }
+
+//   let ipAddress = "";
+//   let formTemplate = null;
+//   let whatsappNumber = null;
+
+//   /* ===================== REQUIRED STAR ===================== */
+//   const requiredStar = (f) =>
+//     f.required ? `<span style="color:red;margin-left:4px">*</span>` : "";
+
+//   /* ===================== 1️⃣ GET IP ===================== */
+//   try {
+//     const res = await fetch("https://api.ipify.org?format=json");
+//     const json = await res.json();
+//     ipAddress = json?.ip || "";
+//   } catch (err) {
+//     console.warn("IP fetch failed", err);
+//   }
+
+//   /* ===================== 2️⃣ LOAD BACKEND ===================== */
+//   try {
+//     const res = await fetch(`https://nodejs-qvgm.onrender.com/api/users/${shopId}`);
+//     const json = await res.json();
+
+//     formTemplate = json?.data?.formTemplates;
+
+//   mailSent = json?.data?.mailsent; 
+//     const code = (json?.data?.currencyCode || "").replace("+", "");
+//     const number = json?.data?.whatsappNumber || "";
+
+//     whatsappNumber = code && number ? `+${code}${number}` : number;
+
+//   } catch (err) {
+//     console.error("Backend error", err);
+//   }
+
+//   if (!formTemplate?.fields || !Array.isArray(formTemplate.fields)) {
+//     console.warn("No fields found");
+//     return;
+//   }
+
+//   /* ===================== 3️⃣ ENSURE FIELD IDS ===================== */
+//   formTemplate.fields.forEach((f, i) => {
+//     if (!f.id) f.id = `field_${i}`;
+//   });
+
+//   /* ===================== 4️⃣ BUILD FIELDS ===================== */
+//   formTemplate.fields.forEach(f => {
+
+
+//     // conditional name
+// // global variable from backend fetch
+// const name = mailSent ? `contact[${f.label}]` : `${f.label}`;
+
+//     // const name = `contact[${f.label}]`;
+//     const required = f.required ? "required" : "";
+//     const placeholder = f.placeholder || "";
+//     let html = "";
+
+//     /* ---- INPUT ---- */
+//     if (["text", "email", "tel", "url", "number", "date"].includes(f.type)) {
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <input id="${f.id}" type="${f.type}" name="${name}" ${required} placeholder="${placeholder}">
+//         </div>`;
+//     }
+
+//     /* ---- TEXTAREA ---- */
+//     else if (f.type === "textarea") {
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <textarea id="${f.id}" name="${name}" ${required} placeholder="${placeholder}"></textarea>
+//         </div>`;
+//     }
+
+//     /* ---- SELECT / DROPDOWN ---- */
+//     else if (f.type === "select" || f.type === "dropdown") {
+//       const options = (f.options || []).map(opt => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `<option value="${val}">${val}</option>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <select id="${f.id}" name="${name}" ${required}>
+//             <option value="">-- Select ${f.label} --</option>
+//             ${options}
+//           </select>
+//         </div>`;
+//     }
+
+//     /* ---- RADIO ---- */
+//     else if (f.type === "radio") {
+//       const radios = (f.options || []).map((opt, i) => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `
+//           <label>
+//             <input type="radio" name="${name}" value="${val}" ${required && i === 0 ? "required" : ""}>
+//             ${val}
+//           </label>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <div>${radios}</div>
+//         </div>`;
+//     }
+
+//     /* ---- CHECKBOX ---- */
+//     else if (f.type === "checkbox") {
+//       const checks = (f.options || []).map(opt => {
+//         const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+//         return `
+//           <label>
+//             <input type="checkbox" data-id="${f.id}" value="${val}">
+//             ${val}
+//           </label>`;
+//       }).join("");
+
+//       html = `
+//         <div class="form-group">
+//           <label>${f.label} ${requiredStar(f)}</label>
+//           <div>${checks}</div>
+//         </div>`;
+//     }
+
+//     fieldsDiv.insertAdjacentHTML("beforeend", html);
+//   });
+
+//   /* ===================== 5️⃣ SUBMIT ===================== */
+//   form.addEventListener("submit", async function (e) {
+//     e.preventDefault();
+
+//     const dynamicData = {};
+//     let whatsappMsg = `Store: ${encodeURIComponent(storeName)}%0A`;
+
+//     formTemplate.fields.forEach(f => {
+//       let value = "";
+//       const el = document.getElementById(f.id);
+
+//       if (f.type === "checkbox") {
+//         value = [...document.querySelectorAll(`input[data-id="${f.id}"]:checked`)]
+//           .map(c => c.value)
+//           .join(", ");
+//       }
+//       else if (f.type === "radio") {
+//         const r = document.querySelector(`input[name="contact[${f.label}]"]:checked`);
+//         value = r ? r.value : "";
+//       }
+//       else if (el) {
+//         value = el.value;
+//       }
+
+//       if (!value) return;
+
+//       dynamicData[f.id] = {
+//         type: f.type,
+//         value
+//       };
+
+//       whatsappMsg += `${encodeURIComponent(f.label)}: ${encodeURIComponent(value)}%0A`;
+//     });
+
+//     /* ===================== 6️⃣ API BODY (SELECT → DROPDOWN FIX) ===================== */
+//     const apiData = {
+//       merchantId: `gid://shopify/Shop/${shopId}`,
+//       storeName,
+//       ipAddress
+//     };
+
+//     Object.keys(dynamicData).forEach(id => {
+//       const field = dynamicData[id];
+//       let key = field.type;
+
+//       // 🔥 IMPORTANT FIX
+//       if (key === "select") key = "dropdown";
+
+//       apiData[key] = field.value;
+//     });
+
+//     console.log("📤 API BODY", apiData);
+
+//     /* ===================== 7️⃣ WHATSAPP ===================== */
+//     if (whatsappNumber) {
+//       const waLink = `https://wa.me/${whatsappNumber}?text=${whatsappMsg}`;
+//       const tab = window.open("about:blank", "_blank");
+//       if (tab) tab.location.href = waLink;
+//     }
+
+//     /* ===================== 8️⃣ SEND BACKEND ===================== */
+//     try {
+//       await fetch("https://nodejs-qvgm.onrender.com/api/add-user", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify(apiData)
+//       });
+//     } catch (err) {
+//       console.error("API error", err);
+//     }
+
+//     /* ===================== 9️⃣ SHOPIFY SUBMIT ===================== */
+//     setTimeout(() => form.submit(), 300);
+//   });
+
+// });
+
+
+
+
+
+// frontend emty 
+
+
+document.addEventListener("DOMContentLoaded", async function () {
+
+  /* ===================== SAFETY CHECK ===================== */
+  if (!window.APP_CONFIG) {
+    console.warn("APP_CONFIG missing");
+    return;
+  }
+
+  const shopId = window.APP_CONFIG.shopId;
+  const storeName = window.APP_CONFIG.storeName;
+
+  const form = document.getElementById("simpleContactForm");
+  const fieldsDiv = document.getElementById("shopifyFields");
+
+  let mailSent = false;
+
+  if (!form || !fieldsDiv) {
+    console.warn("Form or fields container not found");
+    return;
+  }
+
+  // ====== ADD LOADER ======
+  const loader = document.createElement("div");
+  loader.id = "shopifyLoader";
+loader.style.display = "flex";
+loader.style.alignItems = "center";
+loader.style.justifyContent = "center";
+loader.style.marginBottom = "10px";
+loader.style.gap = "8px";
+loader.style.height = "30px"; // ensure it has height
+loader.innerHTML = `
+  <div class="spinner" style="
+    width: 18px;
+    height: 18px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #555;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  "></div>
+  <span>Loading form...</span>
+`;
+  fieldsDiv.parentNode.insertBefore(loader, fieldsDiv);
+  fieldsDiv.style.display = "none"; // hide fields until loaded
+  form.querySelector(".submit-btn").style.display = "none"; // hide buttonz
+
+  let ipAddress = "";
+  let formTemplate = null;
+  let whatsappNumber = null;
+
+  /* ===================== REQUIRED STAR ===================== */
+  const requiredStar = (f) =>
+    f.required ? `<span style="color:red;margin-left:4px">*</span>` : "";
+
+  /* ===================== 1️⃣ GET IP ===================== */
+  try {
+    const res = await fetch("https://api.ipify.org?format=json");
+    const json = await res.json();
+    ipAddress = json?.ip || "";
+  } catch (err) {
+    console.warn("IP fetch failed", err);
+  }
+
+  /* ===================== 2️⃣ LOAD BACKEND ===================== */
+  try {
+    const res = await fetch(`https://nodejs-qvgm.onrender.com/api/users/${shopId}`);
+    const json = await res.json();
+
+    formTemplate = json?.data?.formTemplates;
+    mailSent = json?.data?.mailsent; 
+    const code = (json?.data?.currencyCode || "").replace("+", "");
+    const number = json?.data?.whatsappNumber || "";
+    whatsappNumber = code && number ? `+${code}${number}` : number;
+  } catch (err) {
+    console.error("Backend error", err);
+  }
+
+  if (!formTemplate?.fields || !Array.isArray(formTemplate.fields)) {
+    loader.innerText = "No fields found.";
+    return;
+  }
+
+  /* ===================== 3️⃣ ENSURE FIELD IDS ===================== */
+  formTemplate.fields.forEach((f, i) => {
+    if (!f.id) f.id = `field_${i}`;
+  });
+
+  /* ===================== 4️⃣ BUILD FIELDS ===================== */
+  formTemplate.fields.forEach(f => {
+    const name = mailSent ? `contact[${f.label}]` : `${f.label}`;
+    const required = f.required ? "required" : "";
+    const placeholder = f.placeholder || "";
+    let html = "";
+
+    if (["text", "email", "tel", "url", "number", "date"].includes(f.type)) {
+      html = `
+        <div class="form-group">
+          <label>${f.label} ${requiredStar(f)}</label>
+          <input id="${f.id}" type="${f.type}" name="${name}" ${required} placeholder="${placeholder}">
+        </div>`;
+    } else if (f.type === "textarea") {
+      html = `
+        <div class="form-group">
+          <label>${f.label} ${requiredStar(f)}</label>
+          <textarea id="${f.id}" name="${name}" ${required} placeholder="${placeholder}"></textarea>
+        </div>`;
+    } else if (f.type === "select" || f.type === "dropdown") {
+      const options = (f.options || []).map(opt => {
+        const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+        return `<option value="${val}">${val}</option>`;
+      }).join("");
+
+      html = `
+        <div class="form-group">
+          <label>${f.label} ${requiredStar(f)}</label>
+          <select id="${f.id}" name="${name}" ${required}>
+            <option value="">-- Select ${f.label} --</option>
+            ${options}
+          </select>
+        </div>`;
+    } else if (f.type === "radio") {
+      const radios = (f.options || []).map((opt, i) => {
+        const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+        return `
+          <label>
+            <input type="radio" name="${name}" value="${val}" ${required && i === 0 ? "required" : ""}>
+            ${val}
+          </label>`;
+      }).join("");
+
+      html = `
+        <div class="form-group">
+          <label>${f.label} ${requiredStar(f)}</label>
+          <div>${radios}</div>
+        </div>`;
+    } else if (f.type === "checkbox") {
+      const checks = (f.options || []).map(opt => {
+        const val = typeof opt === "string" ? opt : (opt.value || opt.label);
+        return `
+          <label>
+            <input type="checkbox" data-id="${f.id}" value="${val}">
+            ${val}
+          </label>`;
+      }).join("");
+
+      html = `
+        <div class="form-group">
+          <label>${f.label} ${requiredStar(f)}</label>
+          <div>${checks}</div>
+        </div>`;
+    }
+
+    fieldsDiv.insertAdjacentHTML("beforeend", html);
+  });
+
+  // ===== SHOW FIELDS & BUTTON AFTER BUILD =====
+  loader.style.display = "none";
+  fieldsDiv.style.display = "block";
+  form.querySelector(".submit-btn").style.display = "inline-block";
+
+  /* ===================== 5️⃣ SUBMIT ===================== */
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const dynamicData = {};
+    let whatsappMsg = `Store: ${encodeURIComponent(storeName)}%0A`;
+
+    formTemplate.fields.forEach(f => {
+      let value = "";
+      const el = document.getElementById(f.id);
+
+      if (f.type === "checkbox") {
+        value = [...document.querySelectorAll(`input[data-id="${f.id}"]:checked`)]
+          .map(c => c.value)
+          .join(", ");
+      }
+      else if (f.type === "radio") {
+        const r = document.querySelector(`input[name="contact[${f.label}]"]:checked`);
+        value = r ? r.value : "";
+      }
+      else if (el) {
+        value = el.value;
+      }
+
+      if (!value) return;
+
+      dynamicData[f.id] = {
+        type: f.type,
+        value
+      };
+
+      whatsappMsg += `${encodeURIComponent(f.label)}: ${encodeURIComponent(value)}%0A`;
+    });
+
+    /* ===================== 6️⃣ API BODY (SELECT → DROPDOWN FIX) ===================== */
+    const apiData = {
+      merchantId: `gid://shopify/Shop/${shopId}`,
+      storeName,
+      ipAddress
+    };
+
+    Object.keys(dynamicData).forEach(id => {
+      const field = dynamicData[id];
+      let key = field.type;
+      if (key === "select") key = "dropdown";
+      apiData[key] = field.value;
+    });
+
+    console.log("📤 API BODY", apiData);
+
+    /* ===================== 7️⃣ WHATSAPP ===================== */
+    if (whatsappNumber) {
+      const waLink = `https://wa.me/${whatsappNumber}?text=${whatsappMsg}`;
+      const tab = window.open("about:blank", "_blank");
+      if (tab) tab.location.href = waLink;
+    }
+
+    /* ===================== 8️⃣ SEND BACKEND ===================== */
+    try {
+      await fetch("https://nodejs-qvgm.onrender.com/api/add-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apiData)
+      });
+    } catch (err) {
+      console.error("API error", err);
+    }
+
+    /* ===================== 9️⃣ SHOPIFY SUBMIT ===================== */
+    setTimeout(() => form.submit(), 300);
+  });
+
+});

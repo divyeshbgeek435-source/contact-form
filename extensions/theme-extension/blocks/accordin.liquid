@@ -1,0 +1,108 @@
+<div
+  class="dynamic-form"
+  style="
+    --bg: {{ block.settings.bg }};
+    --text: {{ block.settings.text }};
+    --border: {{ block.settings.border }};
+    --radius: {{ block.settings.radius }}px;
+    --font-size: {{ block.settings.font_size }}px;
+    --btn-bg: {{ block.settings.btn_bg }};
+    --btn-text: {{ block.settings.btn_text }};
+    --btn-hover: {{ block.settings.btn_hover }};
+    --btn-font-size: {{ block.settings.btn_font_size }}px;
+  "
+>
+  
+  {% form 'contact', id: 'simpleContactForm' %}
+    {% if form.posted_successfully? %}
+      <p class="success-msg">🎉 Thank you! We will contact you soon.</p>
+    {% endif %}
+
+    {% if form.errors %}
+      <p class="error-msg">⚠️ {{ form.errors | default_errors }}</p>
+    {% endif %}
+
+    {% comment %} <div id="shopifyFields"></div>
+
+    <button type="submit" class="submit-btn">Submit</button>     {% endcomment %}
+
+     {% comment %} <div id="shopifyLoader" style="display: block;">Loading form...</div> {% endcomment %}
+    <div id="shopifyFields" style="display: none;"></div>
+
+    <button type="submit" class="submit-btn" style="display: none;">{{ block.settings.btn_label | default: "Submit" }}</button>    
+  
+  {% endform %}
+</div>
+
+<script> 
+  window.APP_CONFIG = {
+    shopId: '{{ shop.id }}',
+    storeName: '{{ shop.permanent_domain }}',
+  };
+</script>
+
+{{ 'contact-form.js' | asset_url | script_tag }}
+{{ 'contact-form.css' | asset_url | stylesheet_tag }}
+
+{% schema %}
+{
+  "name": "Dynamic Contact Form",
+  "target": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Form Style"
+    },
+    {
+      "type": "color",
+      "id": "bg",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text",
+      "label": "Text color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "border",
+      "label": "Border color",
+      "default": "#dddddd"
+    },
+
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font size",
+      "min": 12,
+      "max": 22,
+      "step": 1,
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "Submit Button"
+    },
+    {
+      "type": "text",
+      "id": "btn_label",
+      "label": "Button text",
+      "default": "Submit"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg",
+      "label": "Button background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "btn_text",
+      "label": "Button text color",
+      "default": "#ffffff"
+    }
+  ]
+}
+{% endschema %}
