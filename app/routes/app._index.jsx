@@ -59,6 +59,8 @@ export const loader = async ({ request }) => {
   const shopGid = json.data.shop.id;
   const shopId = shopGid.split("/").pop();
   const shopName = json.data.shop.name;
+
+    console.log(shopId,"gernlkhrbehgrbeh")
   return { shopId, shopGid, shopName };
 };
 
@@ -364,6 +366,8 @@ export default function Index({ loaderData }) {
  
 
   const { shopId, shopGid, shopName } = loaderData || {};
+
+
   const [stats, setStats] = useState(null);
   const [isClient, setIsClient] = useState(false);
   const [currentMonthIndex, setCurrentMonthIndex] = useState(0);

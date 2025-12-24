@@ -2662,6 +2662,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   if (formTitleDiv) formTitleDiv.innerText = formTemplate.name || "";
   if (formDescDiv) formDescDiv.innerText = formTemplate.description || "";
+  if (successDiv) successDiv.innerText = formTemplate.successdescription || "";
+
+
+
 
   formTemplate.fields.forEach((f, i) => f.id ||= `field_${i}`);
 
@@ -2688,7 +2692,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         </div>`;
     }
 
-    else if (f.type === "dropdown" || f.type === "select") {
+    else if (f.type === "dropdown") {
       const opts = (f.options||[])
         .map(o => `<option value="${o.value||o}">${o.label||o}</option>`).join("");
       html = `

@@ -2244,6 +2244,912 @@
 // }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+// import { useLoaderData, useNavigation } from "react-router";
+// import { authenticate } from "../shopify.server";
+// import { useState, useMemo, useEffect, useCallback } from "react";
+// import {
+//   Page,
+//   LegacyCard,
+//   IndexTable,
+//   Text,
+//   Badge,
+//   Button,
+//   TextField,
+//   Select,
+//   EmptySearchResult,
+//   InlineStack,
+//   BlockStack,
+//   Icon,
+//   ButtonGroup,
+//   Box,
+// } from "@shopify/polaris";
+// import {
+//   SearchIcon,
+//   ExportIcon,
+//   CalendarIcon,
+//   SortAscendingIcon,
+//   SortDescendingIcon,
+//   RefreshIcon,
+// } from "@shopify/polaris-icons";
+
+// /* ===================== LOADER ===================== */
+// export const loader = async ({ request }) => {
+//   const { admin } = await authenticate.admin(request);
+
+//   const shopRes = await admin.graphql(`
+//     query {
+//       shop {
+//         id
+//         name
+//       }
+//     }
+//   `);
+
+//   const shopJson = await shopRes.json();
+//   const merchantId = shopJson.data.shop.id.split("/").pop();
+
+//   const res = await fetch(`http://localhost:5000/api/users/${merchantId}`);
+//   const json = await res.json();
+
+//   return {
+//     merchant: json.data,
+//     merchantId,
+//   };
+// };
+
+// /* ===================== FIELD → CONTACT KEY MAP ===================== */
+// const FIELD_TYPE_MAP = {
+//   text: "text",
+//   email: "email",
+//   number: "number",
+//   textarea: "textarea",
+//   checkbox: "checkbox",
+//   select: "dropdown",
+//   radio: "radio",
+// };
+
+// /* ===================== COMPONENT ===================== */
+// export default function Index() {
+//   const { merchant, merchantId } = useLoaderData();
+//   const nav = useNavigation();
+//   const loading = nav.state === "submitting";
+//   const [refreshedData, setRefreshedData] = useState(null);
+
+
+//   const contacts = refreshedData?.contacts || merchant?.contacts || [];
+//   const fields = refreshedData?.formTemplates?.fields || merchant?.formTemplates?.fields || [];
+
+//   const [search, setSearch] = useState("");
+//   const [sort, setSort] = useState("date-desc");
+//   const [page, setPage] = useState(1);
+//   const [dateFilter, setDateFilter] = useState("all");
+//   const [isExporting, setIsExporting] = useState(false);
+//   const [isClient, setIsClient] = useState(false);
+//   const [isRefreshing, setIsRefreshing] = useState(false);
+//   const limit = 15;
+
+//   // Add animations and styles
+//   useEffect(() => {
+//     setIsClient(true);
+//     const style = document.createElement('style');
+//     style.innerHTML = `
+      
+//     `;
+//     document.head.appendChild(style);
+//     return () => {
+//       document.head.removeChild(style);
+//     };
+//   }, []);
+
+//   /* ===================== HELPERS ===================== */
+//   const formatDate = (date) =>
+//     new Date(date).toLocaleDateString("en-US", {
+//       day: "2-digit",
+//       month: "short",
+//       year: "numeric",
+//     });
+
+//   const isToday = (date) => {
+//     const today = new Date();
+//     const checkDate = new Date(date);
+//     return (
+//       checkDate.getDate() === today.getDate() &&
+//       checkDate.getMonth() === today.getMonth() &&
+//       checkDate.getFullYear() === today.getFullYear()
+//     );
+//   };
+
+//   /* ===================== FILTER + SORT ===================== */
+//   const filteredContacts = useMemo(() => {
+//     let data = [...contacts];
+
+//     // Apply date filter
+//     if (dateFilter === "today") {
+//       data = data.filter((contact) => isToday(contact.createdAt));
+//     }
+
+//     // Apply search filter
+//     if (search) {
+//       const q = search.toLowerCase();
+//       data = data.filter((c) => {
+//         // Search in dynamic fields
+//         const fieldMatch = fields.some((field) => {
+//           const key = FIELD_TYPE_MAP[field.type];
+//           const value = c[key];
+//           if (Array.isArray(value)) {
+//             return value.some(v => v.toLowerCase().includes(q));
+//           }
+//           return value?.toString().toLowerCase().includes(q);
+//         });
+        
+//         return fieldMatch;
+//       });
+//     }
+
+//     // Apply sorting
+//     data.sort((a, b) => {
+//       const da = new Date(a.createdAt);
+//       const db = new Date(b.createdAt);
+//       return sort === "date-asc" ? da - db : db - da;
+//     });
+
+//     return data;
+//   }, [contacts, search, sort, dateFilter, fields]);
+
+//   /* ===================== PAGINATION ===================== */
+//   const totalPages = Math.ceil(filteredContacts.length / limit);
+//   const paginated = filteredContacts.slice(
+//     (page - 1) * limit,
+//     page * limit
+//   );
+
+//   const startIndex = filteredContacts.length === 0
+//     ? 0
+//     : (page - 1) * limit + 1;
+//   const endIndex = Math.min(page * limit, filteredContacts.length);
+
+//   /* ===================== DYNAMIC HEADINGS ===================== */
+//   const headings = useMemo(() => {
+//     return [
+//       ...fields.map((field) => ({
+//         title: field.label.replace("/", "").trim(),
+//       })),
+//       { title: "Date" },
+//     ];
+//   }, [fields]);
+
+//   /* ===================== CSV EXPORT ===================== */
+//   const exportCSV = useCallback(() => {
+//     if (!filteredContacts.length) return;
+
+//     setIsExporting(true);
+
+//     setTimeout(() => {
+//       const headers = [
+//         ...fields.map((f) => f.label),
+//         "Date",
+//       ];
+
+//       const rows = filteredContacts.map((c) => [
+//         ...fields.map((f) => {
+//           const key = FIELD_TYPE_MAP[f.type];
+//           const value = c[key];
+//           return Array.isArray(value) ? value.join("; ") : (value || "");
+//         }),
+//         formatDate(c.createdAt),
+//       ]);
+
+//       const csv = [headers, ...rows].map((r) => 
+//         r.map(cell => `"${cell}"`).join(",")
+//       ).join("\n");
+      
+//       const blob = new Blob([csv], { type: "text/csv" });
+//       const link = document.createElement("a");
+//       link.href = URL.createObjectURL(blob);
+//       link.download = `contacts_${merchantId}_${Date.now()}.csv`;
+//       link.click();
+
+//       setIsExporting(false);
+//     }, 500);
+//   }, [filteredContacts, fields, merchantId]);
+
+//   /* ===================== EVENT HANDLERS ===================== */
+//   const handleSearchChange = useCallback((value) => {
+//     setSearch(value);
+//     setPage(1);
+//   }, []);
+
+//   const handleSearchClear = useCallback(() => {
+//     setSearch("");
+//     setPage(1);
+//   }, []);
+
+//   const handleSortChange = useCallback((value) => {
+//     setSort(value);
+//     setPage(1);
+//   }, []);
+
+//   const handleDateFilterChange = useCallback((value) => {
+//     setDateFilter(value);
+//     setPage(1);
+//   }, []);
+
+//   const handleResetFilters = useCallback(() => {
+//     setSearch("");
+//     setSort("date-desc");
+//     setDateFilter("all");
+//     setPage(1);
+//   }, []);
+
+//   /* ===================== REFRESH HANDLER ===================== */
+//   const handleRefresh = useCallback(async () => {
+//     setIsRefreshing(true);
+    
+//     try {
+//       const response = await fetch(`http://localhost:5000/api/users/${merchantId}`);
+//       const json = await response.json();
+      
+//       if (json.data) {
+//         setRefreshedData(json.data);
+//       }
+//     } catch (error) {
+//       console.error("Failed to refresh data:", error);
+//     } finally {
+//       setIsRefreshing(false);
+//     }
+//   }, [merchantId]);
+
+//   /* ===================== STATISTICS ===================== */
+//   const todayContactsCount = contacts.filter((c) => isToday(c.createdAt)).length;
+
+//   /* ===================== ROWS ===================== */
+//   const rowMarkup = paginated.map((contact, index) => (
+//     <IndexTable.Row
+//       id={contact._id}
+//       key={contact._id}
+//       position={index}
+//       className={isClient ? 'animate-row' : ''}
+//       style={{
+//         animationDelay: isClient ? `${index * 0.03}s` : '0s',
+//       }}
+//     >
+//       {fields.map((field) => {
+//         const key = FIELD_TYPE_MAP[field.type];
+//         const value = contact[key];
+
+//         return (
+//           <IndexTable.Cell key={field._id}>
+//             <Box maxWidth="300px">
+//               <Text variant="bodyMd" as="span">
+//                 {Array.isArray(value) ? value.join(", ") : value || "N/A"}
+//               </Text>
+//             </Box>
+//           </IndexTable.Cell>
+//         );
+//       })}
+
+//       <IndexTable.Cell>
+//         <BlockStack gap="100">
+//           <Text variant="bodyMd" as="span" fontWeight="medium">
+//             {formatDate(contact.createdAt)}
+//           </Text>
+//         </BlockStack>
+//       </IndexTable.Cell>
+//     </IndexTable.Row>
+//   ));
+
+//   /* ===================== EMPTY STATE ===================== */
+//   const emptyStateMarkup = (
+//     <EmptySearchResult
+//       title={
+//         dateFilter === "today"
+//           ? "No contacts found for today"
+//           : "No contacts found"
+//       }
+//       description={
+//         search || dateFilter !== "all"
+//           ? "Try adjusting your search or filters"
+//           : "No submissions yet"
+//       }
+//       withIllustration
+//     />
+//   );
+
+//   /* ===================== SORT OPTIONS ===================== */
+//   const sortOptions = [
+//     { label: "Newest First", value: "date-desc" },
+//     { label: "Oldest First", value: "date-asc" },
+//   ];
+
+//   const dateFilterOptions = [
+//     { label: "All Dates", value: "all" },
+//     { label: "Today Only", value: "today" },
+//   ];
+
+//   /* ===================== UI ===================== */
+//   return (
+//     <Page>
+//       <InlineStack align="end" gap="200">
+//         <Button
+//           icon={RefreshIcon}
+//           onClick={handleRefresh}
+//           loading={isRefreshing}
+//           disabled={isRefreshing}
+//         >
+//           Refresh
+//         </Button>
+//         <Button
+//           icon={ExportIcon}
+//           tone="success"
+//           onClick={exportCSV}
+//           disabled={filteredContacts.length === 0 || isExporting}
+//           loading={isExporting}
+//         >
+//           Export CSV
+//         </Button>
+//       </InlineStack>
+
+//       {/* Statistics Cards */}
+//       <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+//         <InlineStack gap="400" wrap={true} blockAlign="stretch">
+//           {/* Today's Submissions Card */}
+//           <div style={{ flex: "1 1 280px", minWidth: "250px" }}>
+//             <Box
+//               padding="400"
+//               background="bg-surface"
+//               borderRadius="300"
+//               borderColor="border"
+//               borderWidth="025"
+//               shadow="100"
+//             >
+//               <InlineStack gap="300" blockAlign="center" wrap={false}>
+//                 <div
+//                   style={{
+//                     padding: "12px",
+//                     background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+//                     borderRadius: "12px",
+//                     display: "flex",
+//                     alignItems: "center",
+//                     justifyContent: "center",
+//                     minWidth: "48px",
+//                     height: "48px",
+//                   }}
+//                 >
+//                   <div style={{ color: "white" }}>
+//                     <Icon source={CalendarIcon} />
+//                   </div>
+//                 </div>
+//                 <BlockStack gap="100">
+//                   <Text variant="bodySm" as="p" tone="subdued" fontWeight="medium">
+//                     Today's Submissions
+//                   </Text>
+//                   <Text variant="heading2xl" as="h3" fontWeight="bold" className={isClient ? 'animate-count' : ''}>
+//                     {todayContactsCount}
+//                   </Text>
+//                 </BlockStack>
+//               </InlineStack>
+//             </Box>
+//           </div>
+
+//           {/* Total Entries Card */}
+//           <div style={{ flex: "1 1 280px", minWidth: "250px" }}>
+//             <Box
+//               padding="400"
+//               background="bg-surface"
+//               borderRadius="300"
+//               borderColor="border"
+//               borderWidth="025"
+//               shadow="100"
+//             >
+//               <InlineStack gap="300" blockAlign="center" wrap={false}>
+//                 <div
+//                   style={{
+//                     padding: "12px",
+//                     background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+//                     borderRadius: "12px",
+//                     display: "flex",
+//                     alignItems: "center",
+//                     justifyContent: "center",
+//                     minWidth: "48px",
+//                     height: "48px",
+//                   }}
+//                 >
+//                   <div style={{ color: "white" }}>
+//                     <Icon source={CalendarIcon} />
+//                   </div>
+//                 </div>
+//                 <BlockStack gap="100">
+//                   <Text variant="bodySm" as="p" tone="subdued" fontWeight="medium">
+//                     Total Entries
+//                   </Text>
+//                   <Text variant="heading2xl" as="h3" fontWeight="bold" className={isClient ? 'animate-count' : ''}>
+//                     {contacts.length}
+//                   </Text>
+//                 </BlockStack>
+//               </InlineStack>
+//             </Box>
+//           </div>
+
+//           {/* Showing Results Card */}
+//           <div style={{ flex: "1 1 280px", minWidth: "250px" }}>
+//             <Box
+//               padding="400"
+//               background="bg-surface"
+//               borderRadius="300"
+//               borderColor="border"
+//               borderWidth="025"
+//               shadow="100"
+//             >
+//               <InlineStack gap="300" blockAlign="center" wrap={false}>
+//                 <div
+//                   style={{
+//                     padding: "12px",
+//                     background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+//                     borderRadius: "12px",
+//                     display: "flex",
+//                     alignItems: "center",
+//                     justifyContent: "center",
+//                     minWidth: "48px",
+//                     height: "48px",
+//                   }}
+//                 >
+//                   <div style={{ color: "white" }}>
+//                     <Icon source={SearchIcon} />
+//                   </div>
+//                 </div>
+//                 <BlockStack gap="100">
+//                   <Text variant="bodySm" as="p" tone="subdued" fontWeight="medium">
+//                     Showing Results
+//                   </Text>
+//                   <Text variant="heading2xl" as="h3" fontWeight="bold" className={isClient ? 'animate-count' : ''}>
+//                     {startIndex}-{endIndex} of {filteredContacts.length}
+//                   </Text>
+//                 </BlockStack>
+//               </InlineStack>
+//             </Box>
+//           </div>
+//         </InlineStack>
+//       </div>
+
+//       <LegacyCard>
+//         <div style={{ padding: "16px 20px" }}>
+//           {/* Filters Section */}
+//           <div style={{ marginTop: "20px" }}>
+//             <InlineStack gap="300" align="space-between" blockAlign="center">
+//               {/* Search */}
+//               <div style={{ flex: 1, maxWidth: "400px" }}>
+//                 <TextField
+//                   value={search}
+//                   onChange={handleSearchChange}
+//                   placeholder="Search contacts..."
+//                   prefix={<Icon source={SearchIcon} tone="base" />}
+//                   clearButton
+//                   onClearButtonClick={handleSearchClear}
+//                   autoComplete="off"
+//                 />
+//               </div>
+
+//               {/* Filters & Controls */}
+//               <InlineStack gap="200" blockAlign="center" wrap={false}>
+//                 {/* Date Filter */}
+//                 <InlineStack gap="100" blockAlign="center">
+//                   <Icon source={CalendarIcon} tone="base" />
+//                   <div style={{ minWidth: "140px" }}>
+//                     <Select
+//                       label="Date filter"
+//                       labelHidden
+//                       options={dateFilterOptions}
+//                       value={dateFilter}
+//                       onChange={handleDateFilterChange}
+//                     />
+//                   </div>
+//                 </InlineStack>
+
+//                 {/* Sort */}
+//                 <InlineStack gap="100" blockAlign="center">
+//                   <Icon
+//                     source={
+//                       sort.includes("asc")
+//                         ? SortAscendingIcon
+//                         : SortDescendingIcon
+//                     }
+//                     tone="base"
+//                   />
+//                   <div style={{ minWidth: "160px" }}>
+//                     <Select
+//                       label="Sort order"
+//                       labelHidden
+//                       options={sortOptions}
+//                       value={sort}
+//                       onChange={handleSortChange}
+//                     />
+//                   </div>
+//                 </InlineStack>
+
+//                 {/* Reset Button */}
+//                 {(search || dateFilter !== "all" || sort !== "date-desc") && (
+//                   <Button
+//                     icon={RefreshIcon}
+//                     onClick={handleResetFilters}
+//                     accessibilityLabel="Reset all filters"
+//                   >
+//                     Reset
+//                   </Button>
+//                 )}
+//               </InlineStack>
+//             </InlineStack>
+//           </div>
+//         </div>
+
+//         {/* Table */}
+//         <IndexTable
+//           resourceName={{ singular: "contact", plural: "contacts" }}
+//           itemCount={paginated.length}
+//           headings={headings}
+//           selectable={false}
+//           loading={loading}
+//           emptyState={emptyStateMarkup}
+//         >
+//           {rowMarkup}
+//         </IndexTable>
+
+//         {/* Pagination */}
+//         {filteredContacts.length > 0 && (
+//           <div
+//             style={{
+//               padding: "16px 20px",
+//               borderTop: "1px solid #E1E3E5",
+//             }}
+//           >
+//             <InlineStack align="space-between" blockAlign="center">
+//               <InlineStack gap="200" blockAlign="center">
+//                 <Text variant="bodyMd" as="span" tone="subdued">
+//                   Showing {startIndex}-{endIndex} of {filteredContacts.length} results
+//                 </Text>
+//                 <Badge tone="info">
+//                   Page {page} of {totalPages}
+//                 </Badge>
+//               </InlineStack>
+
+//               <ButtonGroup>
+//                 <Button
+//                   disabled={page === 1}
+//                   onClick={() => setPage((p) => p - 1)}
+//                   accessibilityLabel="Previous page"
+//                 >
+//                   ← Previous
+//                 </Button>
+//                 <Button
+//                   disabled={page === totalPages}
+//                   onClick={() => setPage((p) => p + 1)}
+//                   accessibilityLabel="Next page"
+//                 >
+//                   Next →
+//                 </Button>
+//               </ButtonGroup>
+//             </InlineStack>
+//           </div>
+//         )}
+//       </LegacyCard>
+//     </Page>
+//   );
+// }
+
+
+
+
+
+
+
+
+// import { useLoaderData, useNavigation } from "react-router";
+// import { authenticate } from "../shopify.server";
+// import { useState, useMemo, useEffect, useCallback } from "react";
+// import {
+//   Page,
+//   LegacyCard,
+//   IndexTable,
+//   Text,
+//   Badge,
+//   Button,
+//   TextField,
+//   Select,
+//   EmptySearchResult,
+//   InlineStack,
+//   BlockStack,
+//   Icon,
+//   ButtonGroup,
+//   Box,
+// } from "@shopify/polaris";
+// import {
+//   SearchIcon,
+//   ExportIcon,
+//   CalendarIcon,
+//   SortAscendingIcon,
+//   SortDescendingIcon,
+//   RefreshIcon,
+// } from "@shopify/polaris-icons";
+
+// /* ===================== LOADER ===================== */
+// export const loader = async ({ request }) => {
+//   const { admin } = await authenticate.admin(request);
+
+//   const shopRes = await admin.graphql(`
+//     query {
+//       shop {
+//         id
+//         name
+//       }
+//     }
+//   `);
+
+//   const shopJson = await shopRes.json();
+//   const merchantId = shopJson.data.shop.id.split("/").pop();
+
+//   const res = await fetch(`http://localhost:5000/api/users/${merchantId}`);
+//   const json = await res.json();
+
+//   return {
+//     merchant: json.data,
+//     merchantId,
+//   };
+// };
+
+// /* ===================== FIELD TYPE MAP ===================== */
+// const FIELD_TYPE_MAP = {
+//   text: "text",
+//   email: "email",
+//   number: "number",
+//   textarea: "textarea",
+//   checkbox: "checkbox",
+//   select: "dropdown",
+//   radio: "radio",
+// };
+
+// /* ===================== COMPONENT ===================== */
+// export default function Index() {
+//   const { merchant, merchantId } = useLoaderData();
+//   const nav = useNavigation();
+//   const loading = nav.state === "submitting";
+
+//   const contacts = merchant?.contacts || [];
+//   const fields = merchant?.formTemplates?.fields || [];
+
+//   const [search, setSearch] = useState("");
+//   const [sort, setSort] = useState("date-desc");
+//   const [page, setPage] = useState(1);
+//   const [dateFilter, setDateFilter] = useState("all");
+//   const limit = 15;
+
+//   /* ===================== HELPERS ===================== */
+//   const formatDate = (date) =>
+//     new Date(date).toLocaleDateString("en-IN", {
+//       day: "2-digit",
+//       month: "short",
+//       year: "numeric",
+//     });
+
+//   const isToday = (date) => {
+//     const d = new Date(date);
+//     const t = new Date();
+//     return (
+//       d.getDate() === t.getDate() &&
+//       d.getMonth() === t.getMonth() &&
+//       d.getFullYear() === t.getFullYear()
+//     );
+//   };
+
+//   /* ===================== FILTER + SEARCH + SORT ===================== */
+//   const filteredContacts = useMemo(() => {
+//     let data = [...contacts];
+
+//     if (dateFilter === "today") {
+//       data = data.filter((c) => isToday(c.createdAt));
+//     }
+
+//     if (search) {
+//       const q = search.toLowerCase();
+//       data = data.filter((c) =>
+//         fields.some((field) => {
+//           const typeKey = FIELD_TYPE_MAP[field.type];
+//           const value = c?.[typeKey]?.[field.label];
+//           return value?.toString().toLowerCase().includes(q);
+//         })
+//       );
+//     }
+
+//     data.sort((a, b) => {
+//       const da = new Date(a.createdAt);
+//       const db = new Date(b.createdAt);
+//       return sort === "date-asc" ? da - db : db - da;
+//     });
+
+//     return data;
+//   }, [contacts, search, sort, dateFilter, fields]);
+
+//   /* ===================== PAGINATION ===================== */
+//   const totalPages = Math.ceil(filteredContacts.length / limit);
+//   const paginated = filteredContacts.slice(
+//     (page - 1) * limit,
+//     page * limit
+//   );
+
+//   const startIndex =
+//     filteredContacts.length === 0 ? 0 : (page - 1) * limit + 1;
+//   const endIndex = Math.min(page * limit, filteredContacts.length);
+
+//   /* ===================== TABLE HEADINGS ===================== */
+//   const headings = useMemo(() => {
+//     return [
+//       ...fields.map((f) => ({ title: f.label })),
+//       { title: "Date" },
+//     ];
+//   }, [fields]);
+
+//   /* ===================== CSV EXPORT ===================== */
+//   const exportCSV = useCallback(() => {
+//     if (!filteredContacts.length) return;
+
+//     const headers = [...fields.map((f) => f.label), "Date"];
+
+//     const rows = filteredContacts.map((c) => [
+//       ...fields.map((f) => {
+//         const typeKey = FIELD_TYPE_MAP[f.type];
+//         return c?.[typeKey]?.[f.label] || "";
+//       }),
+//       formatDate(c.createdAt),
+//     ]);
+
+//     const csv = [headers, ...rows]
+//       .map((r) => r.map((cell) => `"${cell}"`).join(","))
+//       .join("\n");
+
+//     const blob = new Blob([csv], { type: "text/csv" });
+//     const link = document.createElement("a");
+//     link.href = URL.createObjectURL(blob);
+//     link.download = `contacts_${merchantId}.csv`;
+//     link.click();
+//   }, [filteredContacts, fields, merchantId]);
+
+//   /* ===================== ROWS ===================== */
+//   const rowMarkup = paginated.map((contact, index) => (
+//     <IndexTable.Row
+//       id={contact._id}
+//       key={contact._id}
+//       position={index}
+//     >
+//       {fields.map((field) => {
+//         const typeKey = FIELD_TYPE_MAP[field.type];
+//         const value = contact?.[typeKey]?.[field.label];
+
+//         return (
+//           <IndexTable.Cell key={field._id}>
+//             <Text variant="bodyMd">
+//               {value ? value.toString() : "N/A"}
+//             </Text>
+//           </IndexTable.Cell>
+//         );
+//       })}
+
+//       <IndexTable.Cell>
+//         <Text variant="bodyMd">
+//           {formatDate(contact.createdAt)}
+//         </Text>
+//       </IndexTable.Cell>
+//     </IndexTable.Row>
+//   ));
+
+//   /* ===================== EMPTY STATE ===================== */
+//   const emptyStateMarkup = (
+//     <EmptySearchResult
+//       title="No contacts found"
+//       description="No form submissions yet"
+//       withIllustration
+//     />
+//   );
+
+//   /* ===================== UI ===================== */
+//   return (
+//     <Page title="Form Submissions">
+//       <LegacyCard>
+//         <div style={{ padding: 16 }}>
+//           <InlineStack gap="300">
+//             <TextField
+//               value={search}
+//               onChange={setSearch}
+//               placeholder="Search..."
+//               prefix={<Icon source={SearchIcon} />}
+//               clearButton
+//               onClearButtonClick={() => setSearch("")}
+//             />
+
+//             <Select
+//               label="Sort"
+//               labelHidden
+//               options={[
+//                 { label: "Newest First", value: "date-desc" },
+//                 { label: "Oldest First", value: "date-asc" },
+//               ]}
+//               value={sort}
+//               onChange={setSort}
+//             />
+
+//             <Select
+//               label="Date"
+//               labelHidden
+//               options={[
+//                 { label: "All", value: "all" },
+//                 { label: "Today", value: "today" },
+//               ]}
+//               value={dateFilter}
+//               onChange={setDateFilter}
+//             />
+
+//             <Button icon={ExportIcon} onClick={exportCSV}>
+//               Export CSV
+//             </Button>
+//           </InlineStack>
+//         </div>
+
+//         <IndexTable
+//           resourceName={{ singular: "contact", plural: "contacts" }}
+//           itemCount={paginated.length}
+//           headings={headings}
+//           selectable={false}
+//           loading={loading}
+//           emptyState={emptyStateMarkup}
+//         >
+//           {rowMarkup}
+//         </IndexTable>
+
+//         {filteredContacts.length > 0 && (
+//           <div style={{ padding: 16 }}>
+//             <InlineStack align="space-between">
+//               <Text tone="subdued">
+//                 Showing {startIndex}-{endIndex} of{" "}
+//                 {filteredContacts.length}
+//               </Text>
+
+//               <ButtonGroup>
+//                 <Button
+//                   disabled={page === 1}
+//                   onClick={() => setPage((p) => p - 1)}
+//                 >
+//                   Prev
+//                 </Button>
+//                 <Button
+//                   disabled={page === totalPages}
+//                   onClick={() => setPage((p) => p + 1)}
+//                 >
+//                   Next
+//                 </Button>
+//               </ButtonGroup>
+//             </InlineStack>
+//           </div>
+//         )}
+//       </LegacyCard>
+//     </Page>
+//   );
+// }
+
+
+
+
+
+
+
 import { useLoaderData, useNavigation } from "react-router";
 import { authenticate } from "../shopify.server";
 import { useState, useMemo, useEffect, useCallback } from "react";
@@ -2313,33 +3219,23 @@ export default function Index() {
   const { merchant, merchantId } = useLoaderData();
   const nav = useNavigation();
   const loading = nav.state === "submitting";
+
   const [refreshedData, setRefreshedData] = useState(null);
 
-
   const contacts = refreshedData?.contacts || merchant?.contacts || [];
-  const fields = refreshedData?.formTemplates?.fields || merchant?.formTemplates?.fields || [];
+  const fields =
+    refreshedData?.formTemplates?.fields ||
+    merchant?.formTemplates?.fields ||
+    [];
 
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date-desc");
   const [page, setPage] = useState(1);
   const [dateFilter, setDateFilter] = useState("all");
   const [isExporting, setIsExporting] = useState(false);
-  const [isClient, setIsClient] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const limit = 15;
 
-  // Add animations and styles
-  useEffect(() => {
-    setIsClient(true);
-    const style = document.createElement('style');
-    style.innerHTML = `
-      
-    `;
-    document.head.appendChild(style);
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
+  const limit = 15;
 
   /* ===================== HELPERS ===================== */
   const formatDate = (date) =>
@@ -2350,12 +3246,12 @@ export default function Index() {
     });
 
   const isToday = (date) => {
-    const today = new Date();
-    const checkDate = new Date(date);
+    const t = new Date();
+    const d = new Date(date);
     return (
-      checkDate.getDate() === today.getDate() &&
-      checkDate.getMonth() === today.getMonth() &&
-      checkDate.getFullYear() === today.getFullYear()
+      t.getDate() === d.getDate() &&
+      t.getMonth() === d.getMonth() &&
+      t.getFullYear() === d.getFullYear()
     );
   };
 
@@ -2363,30 +3259,28 @@ export default function Index() {
   const filteredContacts = useMemo(() => {
     let data = [...contacts];
 
-    // Apply date filter
     if (dateFilter === "today") {
-      data = data.filter((contact) => isToday(contact.createdAt));
+      data = data.filter((c) => isToday(c.createdAt));
     }
 
-    // Apply search filter
     if (search) {
       const q = search.toLowerCase();
-      data = data.filter((c) => {
-        // Search in dynamic fields
-        const fieldMatch = fields.some((field) => {
+      data = data.filter((c) =>
+        fields.some((field) => {
           const key = FIELD_TYPE_MAP[field.type];
-          const value = c[key];
+          const value = c?.[key]?.[field.label];
+
           if (Array.isArray(value)) {
-            return value.some(v => v.toLowerCase().includes(q));
+            return value.some((v) =>
+              v.toString().toLowerCase().includes(q)
+            );
           }
+
           return value?.toString().toLowerCase().includes(q);
-        });
-        
-        return fieldMatch;
-      });
+        })
+      );
     }
 
-    // Apply sorting
     data.sort((a, b) => {
       const da = new Date(a.createdAt);
       const db = new Date(b.createdAt);
@@ -2403,20 +3297,20 @@ export default function Index() {
     page * limit
   );
 
-  const startIndex = filteredContacts.length === 0
-    ? 0
-    : (page - 1) * limit + 1;
+  const startIndex =
+    filteredContacts.length === 0 ? 0 : (page - 1) * limit + 1;
   const endIndex = Math.min(page * limit, filteredContacts.length);
 
-  /* ===================== DYNAMIC HEADINGS ===================== */
-  const headings = useMemo(() => {
-    return [
-      ...fields.map((field) => ({
-        title: field.label.replace("/", "").trim(),
+  /* ===================== HEADINGS ===================== */
+  const headings = useMemo(
+    () => [
+      ...fields.map((f) => ({
+        title: f.label.replace("/", "").trim(),
       })),
       { title: "Date" },
-    ];
-  }, [fields]);
+    ],
+    [fields]
+  );
 
   /* ===================== CSV EXPORT ===================== */
   const exportCSV = useCallback(() => {
@@ -2425,82 +3319,46 @@ export default function Index() {
     setIsExporting(true);
 
     setTimeout(() => {
-      const headers = [
-        ...fields.map((f) => f.label),
-        "Date",
-      ];
+      const headers = [...fields.map((f) => f.label), "Date"];
 
       const rows = filteredContacts.map((c) => [
         ...fields.map((f) => {
           const key = FIELD_TYPE_MAP[f.type];
-          const value = c[key];
-          return Array.isArray(value) ? value.join("; ") : (value || "");
+          const value = c?.[key]?.[f.label];
+          return Array.isArray(value) ? value.join("; ") : value || "";
         }),
         formatDate(c.createdAt),
       ]);
 
-      const csv = [headers, ...rows].map((r) => 
-        r.map(cell => `"${cell}"`).join(",")
-      ).join("\n");
-      
+      const csv = [headers, ...rows]
+        .map((r) => r.map((v) => `"${v}"`).join(","))
+        .join("\n");
+
       const blob = new Blob([csv], { type: "text/csv" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `contacts_${merchantId}_${Date.now()}.csv`;
+      link.download = `contacts_${merchantId}.csv`;
       link.click();
 
       setIsExporting(false);
-    }, 500);
+    }, 300);
   }, [filteredContacts, fields, merchantId]);
 
-  /* ===================== EVENT HANDLERS ===================== */
-  const handleSearchChange = useCallback((value) => {
-    setSearch(value);
-    setPage(1);
-  }, []);
-
-  const handleSearchClear = useCallback(() => {
-    setSearch("");
-    setPage(1);
-  }, []);
-
-  const handleSortChange = useCallback((value) => {
-    setSort(value);
-    setPage(1);
-  }, []);
-
-  const handleDateFilterChange = useCallback((value) => {
-    setDateFilter(value);
-    setPage(1);
-  }, []);
-
-  const handleResetFilters = useCallback(() => {
-    setSearch("");
-    setSort("date-desc");
-    setDateFilter("all");
-    setPage(1);
-  }, []);
-
-  /* ===================== REFRESH HANDLER ===================== */
-  const handleRefresh = useCallback(async () => {
+  /* ===================== REFRESH ===================== */
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    
-    try {
-      const response = await fetch(`http://localhost:5000/api/users/${merchantId}`);
-      const json = await response.json();
-      
-      if (json.data) {
-        setRefreshedData(json.data);
-      }
-    } catch (error) {
-      console.error("Failed to refresh data:", error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [merchantId]);
+    const res = await fetch(
+      `http://localhost:5000/api/users/${merchantId}`
+    );
+    const json = await res.json();
+    setRefreshedData(json.data);
+    setIsRefreshing(false);
+  };
 
-  /* ===================== STATISTICS ===================== */
-  const todayContactsCount = contacts.filter((c) => isToday(c.createdAt)).length;
+  /* ===================== STATS ===================== */
+  const todayContactsCount = contacts.filter((c) =>
+    isToday(c.createdAt)
+  ).length;
 
   /* ===================== ROWS ===================== */
   const rowMarkup = paginated.map((contact, index) => (
@@ -2508,20 +3366,18 @@ export default function Index() {
       id={contact._id}
       key={contact._id}
       position={index}
-      className={isClient ? 'animate-row' : ''}
-      style={{
-        animationDelay: isClient ? `${index * 0.03}s` : '0s',
-      }}
     >
       {fields.map((field) => {
         const key = FIELD_TYPE_MAP[field.type];
-        const value = contact[key];
+        const value = contact?.[key]?.[field.label];
 
         return (
           <IndexTable.Cell key={field._id}>
             <Box maxWidth="300px">
-              <Text variant="bodyMd" as="span">
-                {Array.isArray(value) ? value.join(", ") : value || "N/A"}
+              <Text variant="bodyMd">
+                {Array.isArray(value)
+                  ? value.join(", ")
+                  : value || "N/A"}
               </Text>
             </Box>
           </IndexTable.Cell>
@@ -2529,42 +3385,12 @@ export default function Index() {
       })}
 
       <IndexTable.Cell>
-        <BlockStack gap="100">
-          <Text variant="bodyMd" as="span" fontWeight="medium">
-            {formatDate(contact.createdAt)}
-          </Text>
-        </BlockStack>
+        <Text variant="bodyMd">
+          {formatDate(contact.createdAt)}
+        </Text>
       </IndexTable.Cell>
     </IndexTable.Row>
   ));
-
-  /* ===================== EMPTY STATE ===================== */
-  const emptyStateMarkup = (
-    <EmptySearchResult
-      title={
-        dateFilter === "today"
-          ? "No contacts found for today"
-          : "No contacts found"
-      }
-      description={
-        search || dateFilter !== "all"
-          ? "Try adjusting your search or filters"
-          : "No submissions yet"
-      }
-      withIllustration
-    />
-  );
-
-  /* ===================== SORT OPTIONS ===================== */
-  const sortOptions = [
-    { label: "Newest First", value: "date-desc" },
-    { label: "Oldest First", value: "date-asc" },
-  ];
-
-  const dateFilterOptions = [
-    { label: "All Dates", value: "all" },
-    { label: "Today Only", value: "today" },
-  ];
 
   /* ===================== UI ===================== */
   return (
@@ -2574,7 +3400,6 @@ export default function Index() {
           icon={RefreshIcon}
           onClick={handleRefresh}
           loading={isRefreshing}
-          disabled={isRefreshing}
         >
           Refresh
         </Button>
@@ -2582,249 +3407,71 @@ export default function Index() {
           icon={ExportIcon}
           tone="success"
           onClick={exportCSV}
-          disabled={filteredContacts.length === 0 || isExporting}
           loading={isExporting}
         >
           Export CSV
         </Button>
       </InlineStack>
 
-      {/* Statistics Cards */}
-      <div style={{ marginTop: "20px", marginBottom: "20px" }}>
-        <InlineStack gap="400" wrap={true} blockAlign="stretch">
-          {/* Today's Submissions Card */}
-          <div style={{ flex: "1 1 280px", minWidth: "250px" }}>
-            <Box
-              padding="400"
-              background="bg-surface"
-              borderRadius="300"
-              borderColor="border"
-              borderWidth="025"
-              shadow="100"
-            >
-              <InlineStack gap="300" blockAlign="center" wrap={false}>
-                <div
-                  style={{
-                    padding: "12px",
-                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                    borderRadius: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minWidth: "48px",
-                    height: "48px",
-                  }}
-                >
-                  <div style={{ color: "white" }}>
-                    <Icon source={CalendarIcon} />
-                  </div>
-                </div>
-                <BlockStack gap="100">
-                  <Text variant="bodySm" as="p" tone="subdued" fontWeight="medium">
-                    Today's Submissions
-                  </Text>
-                  <Text variant="heading2xl" as="h3" fontWeight="bold" className={isClient ? 'animate-count' : ''}>
-                    {todayContactsCount}
-                  </Text>
-                </BlockStack>
-              </InlineStack>
-            </Box>
-          </div>
+      {/* ===== TOP 3 BOXES (UNCHANGED) ===== */}
+      <div style={{ margin: "20px 0" }}>
+        <InlineStack gap="400" wrap>
+          <Box padding="400" background="bg-surface" borderRadius="300">
+            <Text tone="subdued">Today's Submissions</Text>
+            <Text variant="heading2xl">{todayContactsCount}</Text>
+          </Box>
 
-          {/* Total Entries Card */}
-          <div style={{ flex: "1 1 280px", minWidth: "250px" }}>
-            <Box
-              padding="400"
-              background="bg-surface"
-              borderRadius="300"
-              borderColor="border"
-              borderWidth="025"
-              shadow="100"
-            >
-              <InlineStack gap="300" blockAlign="center" wrap={false}>
-                <div
-                  style={{
-                    padding: "12px",
-                    background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-                    borderRadius: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minWidth: "48px",
-                    height: "48px",
-                  }}
-                >
-                  <div style={{ color: "white" }}>
-                    <Icon source={CalendarIcon} />
-                  </div>
-                </div>
-                <BlockStack gap="100">
-                  <Text variant="bodySm" as="p" tone="subdued" fontWeight="medium">
-                    Total Entries
-                  </Text>
-                  <Text variant="heading2xl" as="h3" fontWeight="bold" className={isClient ? 'animate-count' : ''}>
-                    {contacts.length}
-                  </Text>
-                </BlockStack>
-              </InlineStack>
-            </Box>
-          </div>
+          <Box padding="400" background="bg-surface" borderRadius="300">
+            <Text tone="subdued">Total Entries</Text>
+            <Text variant="heading2xl">{contacts.length}</Text>
+          </Box>
 
-          {/* Showing Results Card */}
-          <div style={{ flex: "1 1 280px", minWidth: "250px" }}>
-            <Box
-              padding="400"
-              background="bg-surface"
-              borderRadius="300"
-              borderColor="border"
-              borderWidth="025"
-              shadow="100"
-            >
-              <InlineStack gap="300" blockAlign="center" wrap={false}>
-                <div
-                  style={{
-                    padding: "12px",
-                    background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-                    borderRadius: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minWidth: "48px",
-                    height: "48px",
-                  }}
-                >
-                  <div style={{ color: "white" }}>
-                    <Icon source={SearchIcon} />
-                  </div>
-                </div>
-                <BlockStack gap="100">
-                  <Text variant="bodySm" as="p" tone="subdued" fontWeight="medium">
-                    Showing Results
-                  </Text>
-                  <Text variant="heading2xl" as="h3" fontWeight="bold" className={isClient ? 'animate-count' : ''}>
-                    {startIndex}-{endIndex} of {filteredContacts.length}
-                  </Text>
-                </BlockStack>
-              </InlineStack>
-            </Box>
-          </div>
+          <Box padding="400" background="bg-surface" borderRadius="300">
+            <Text tone="subdued">Showing Results</Text>
+            <Text variant="heading2xl">
+              {startIndex}-{endIndex} of {filteredContacts.length}
+            </Text>
+          </Box>
         </InlineStack>
       </div>
 
       <LegacyCard>
-        <div style={{ padding: "16px 20px" }}>
-          {/* Filters Section */}
-          <div style={{ marginTop: "20px" }}>
-            <InlineStack gap="300" align="space-between" blockAlign="center">
-              {/* Search */}
-              <div style={{ flex: 1, maxWidth: "400px" }}>
-                <TextField
-                  value={search}
-                  onChange={handleSearchChange}
-                  placeholder="Search contacts..."
-                  prefix={<Icon source={SearchIcon} tone="base" />}
-                  clearButton
-                  onClearButtonClick={handleSearchClear}
-                  autoComplete="off"
-                />
-              </div>
-
-              {/* Filters & Controls */}
-              <InlineStack gap="200" blockAlign="center" wrap={false}>
-                {/* Date Filter */}
-                <InlineStack gap="100" blockAlign="center">
-                  <Icon source={CalendarIcon} tone="base" />
-                  <div style={{ minWidth: "140px" }}>
-                    <Select
-                      label="Date filter"
-                      labelHidden
-                      options={dateFilterOptions}
-                      value={dateFilter}
-                      onChange={handleDateFilterChange}
-                    />
-                  </div>
-                </InlineStack>
-
-                {/* Sort */}
-                <InlineStack gap="100" blockAlign="center">
-                  <Icon
-                    source={
-                      sort.includes("asc")
-                        ? SortAscendingIcon
-                        : SortDescendingIcon
-                    }
-                    tone="base"
-                  />
-                  <div style={{ minWidth: "160px" }}>
-                    <Select
-                      label="Sort order"
-                      labelHidden
-                      options={sortOptions}
-                      value={sort}
-                      onChange={handleSortChange}
-                    />
-                  </div>
-                </InlineStack>
-
-                {/* Reset Button */}
-                {(search || dateFilter !== "all" || sort !== "date-desc") && (
-                  <Button
-                    icon={RefreshIcon}
-                    onClick={handleResetFilters}
-                    accessibilityLabel="Reset all filters"
-                  >
-                    Reset
-                  </Button>
-                )}
-              </InlineStack>
-            </InlineStack>
-          </div>
-        </div>
-
-        {/* Table */}
         <IndexTable
           resourceName={{ singular: "contact", plural: "contacts" }}
           itemCount={paginated.length}
           headings={headings}
           selectable={false}
           loading={loading}
-          emptyState={emptyStateMarkup}
+          emptyState={
+            <EmptySearchResult
+              title="No contacts found"
+              description="No submissions yet"
+              withIllustration
+            />
+          }
         >
           {rowMarkup}
         </IndexTable>
 
-        {/* Pagination */}
         {filteredContacts.length > 0 && (
-          <div
-            style={{
-              padding: "16px 20px",
-              borderTop: "1px solid #E1E3E5",
-            }}
-          >
-            <InlineStack align="space-between" blockAlign="center">
-              <InlineStack gap="200" blockAlign="center">
-                <Text variant="bodyMd" as="span" tone="subdued">
-                  Showing {startIndex}-{endIndex} of {filteredContacts.length} results
-                </Text>
-                <Badge tone="info">
-                  Page {page} of {totalPages}
-                </Badge>
-              </InlineStack>
-
+          <div style={{ padding: 16 }}>
+            <InlineStack align="space-between">
+              <Text tone="subdued">
+                Showing {startIndex}-{endIndex} of{" "}
+                {filteredContacts.length}
+              </Text>
               <ButtonGroup>
                 <Button
                   disabled={page === 1}
-                  onClick={() => setPage((p) => p - 1)}
-                  accessibilityLabel="Previous page"
+                  onClick={() => setPage(page - 1)}
                 >
-                  ← Previous
+                  Previous
                 </Button>
                 <Button
                   disabled={page === totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                  accessibilityLabel="Next page"
+                  onClick={() => setPage(page + 1)}
                 >
-                  Next →
+                  Next
                 </Button>
               </ButtonGroup>
             </InlineStack>

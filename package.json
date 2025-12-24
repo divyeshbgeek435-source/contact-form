@@ -24,7 +24,7 @@
         "node": ">=20.19 <22 || >=22.12"
     },
     "dependencies": {
-        "@prisma/client": "^6.16.3",
+        "@prisma/client": "6.7.0",
         "@react-router/dev": "^7.9.6",
         "@react-router/fs-routes": "^7.9.3",
         "@react-router/node": "^7.9.6",
@@ -46,7 +46,7 @@
         "node-notifier": "^10.0.1",
         "nodemailer": "^7.0.11",
         "or": "^0.2.0",
-        "prisma": "^6.16.3",
+        "prisma": "6.7.0",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "react-router": "^7.10.1",
