@@ -1,4 +1,4 @@
-<div
+{% comment %} <div
   class="dynamic-form"
   style="
     --bg: {{ block.settings.bg }};
@@ -158,6 +158,248 @@
   "step": 1,
   "default": 15
 }
+  ]
+}
+{% endschema %} {% endcomment %}
+
+
+
+<div
+  class="dynamic-form"
+  style="
+    --bg: {{ block.settings.bg }};
+    --text: {{ block.settings.text }};
+    --border: {{ block.settings.border }};
+    --radius: {{ block.settings.radius }}px;
+    --font-size: {{ block.settings.font_size }}px;
+    --btn-bg: {{ block.settings.btn_bg }};
+    --btn-text: {{ block.settings.btn_text }};
+    --btn-hover: {{ block.settings.btn_hover }};
+    --btn-font-size: {{ block.settings.btn_font_size }}px;
+    --title-color: {{ block.settings.title_color }};
+    --title-font-size: {{ block.settings.title_font_size }}px;
+    --title-weight: {{ block.settings.title_weight }};
+    --desc-color: {{ block.settings.desc_color }};
+    --desc-font-size: {{ block.settings.desc_font_size }}px;
+    --field-layout: {{ block.settings.field_layout }};
+    --radio-position: {{ block.settings.radio_position }};
+    --checkbox-position: {{ block.settings.checkbox_position }};
+  "
+  data-field-layout="{{ block.settings.field_layout }}"
+  data-radio-position="{{ block.settings.radio_position }}"
+  data-checkbox-position="{{ block.settings.checkbox_position }}"
+>
+  {% form 'contact', id: 'simpleContactForm' %}
+
+  <!-- Pre-submit success or error messages -->
+  {% if form.posted_successfully? %}
+    <p class="success-msg">🎉 Thank you! We will contact you soon.</p>
+  {% endif %}
+
+  {% if form.errors %}
+    <p class="error-msg">⚠️ {{ form.errors | default_errors }}</p>
+  {% endif %}
+
+  <!-- Dynamic form title and description (JS will populate these) -->
+  <div id="formTitle" class="form-title"></div>
+  <div id="formDescription" class="form-description"></div>
+
+  <!-- Dynamic fields container (hidden until JS loads fields) -->
+  <div id="shopifyFields" style="display: none;"></div>
+
+  <!-- Submit button hidden until fields are loaded -->
+  <button type="submit" class="submit-btn" style="display: none;">
+    {{ block.settings.btn_label | default: "Submit" }}
+  </button>
+
+  <!-- Success message container after JS submission -->
+  <div id="formSuccess" style="display: none;"></div>
+
+{% endform %}
+
+</div>
+
+<script> 
+  window.APP_CONFIG = {
+    shopId: '{{ shop.id }}',
+    storeName: '{{ shop.permanent_domain }}',
+  };
+</script>
+
+{{ 'contact-form.js' | asset_url | script_tag }}
+{{ 'contact-form.css' | asset_url | stylesheet_tag }}
+
+{% schema %}
+{
+  "name": "Dynamic Contact Form",
+  "target": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Form Title Customization"
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "Title color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "title_font_size",
+      "label": "Title font size",
+      "min": 16,
+      "max": 48,
+      "step": 2,
+      "default": 28
+    },
+    {
+      "type": "select",
+      "id": "title_weight",
+      "label": "Title font weight",
+      "options": [
+        { "value": "400", "label": "Normal" },
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "Semi Bold" },
+        { "value": "700", "label": "Bold" },
+        { "value": "800", "label": "Extra Bold" }
+      ],
+      "default": "700"
+    },
+    {
+      "type": "header",
+      "content": "Form Description Customization"
+    },
+    {
+      "type": "color",
+      "id": "desc_color",
+      "label": "Description color",
+      "default": "#666666"
+    },
+    {
+      "type": "range",
+      "id": "desc_font_size",
+      "label": "Description font size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Field Layout"
+    },
+    {
+      "type": "select",
+      "id": "field_layout",
+      "label": "Field width",
+      "options": [
+        { "value": "full", "label": "Full Width" },
+        { "value": "half", "label": "Half Width (2 Columns)" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "header",
+      "content": "Radio & Checkbox Position"
+    },
+    {
+      "type": "select",
+      "id": "radio_position",
+      "label": "Radio buttons position",
+      "options": [
+        { "value": "left", "label": "Left Side" },
+        { "value": "right", "label": "Right Side" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "checkbox_position",
+      "label": "Checkboxes position",
+      "options": [
+        { "value": "left", "label": "Left Side" },
+        { "value": "right", "label": "Right Side" }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "header",
+      "content": "Form Style"
+    },
+    {
+      "type": "color",
+      "id": "bg",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text",
+      "label": "Text color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "border",
+      "label": "Border color",
+      "default": "#dddddd"
+    },
+    {
+      "type": "range",
+      "id": "radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Field font size",
+      "min": 12,
+      "max": 22,
+      "step": 1,
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "Submit Button"
+    },
+    {
+      "type": "text",
+      "id": "btn_label",
+      "label": "Button text",
+      "default": "Submit"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg",
+      "label": "Button background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "btn_text",
+      "label": "Button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "btn_hover",
+      "label": "Button hover color",
+      "default": "#333333"
+    },
+    {
+      "type": "range",
+      "id": "btn_font_size",
+      "label": "Button font size",
+      "min": 12,
+      "max": 22,
+      "step": 1,
+      "default": 15
+    }
   ]
 }
 {% endschema %}
