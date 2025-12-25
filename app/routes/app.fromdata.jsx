@@ -15189,8 +15189,8 @@ export default function CustomizeForm() {
     const [modalMode, setModalMode] = useState("add");
     const [selectedFieldId, setSelectedFieldId] = useState(null);
     const [saveMessage, setSaveMessage] = useState(null);
-    const [formSubmissionTitle, setFormSubmissionTitle] = useState("Thank You!");
-    const [successDescription, setSuccessDescription] = useState("Your form has been submitted successfully. We'll be in touch soon!");
+    const [formSubmissionTitle, setFormSubmissionTitle] = useState("");
+    const [successDescription, setSuccessDescription] = useState("");
     const { shop } = useLoaderData();
     const [fields, setFields] = useState([]);
     
@@ -15611,7 +15611,7 @@ export default function CustomizeForm() {
                 name: formName,
                 description: formDescription,
                 formSubmissionTitle,
-                successDescription,
+                successdescription :successDescription,
                 meta: { createdBy: "AdminUser", published: false },
             },
         };
@@ -15894,7 +15894,16 @@ export default function CustomizeForm() {
                                                 showCharacterCount 
                                                 helpText="Brief description or instructions for form users"
                                             />
-                                            
+                                            <InlineGrid columns={2} gap="400">
+                                                <TextField 
+                                                    label="Success Message Title" 
+                                                    value={formSubmissionTitle} 
+                                                    onChange={setFormSubmissionTitle} 
+                                                    autoComplete="off" 
+                                                    helpText="Title shown after successful submission"
+                                                />
+                                               
+                                            </InlineGrid>
                                             <TextField 
                                                 label="Success Message Description" 
                                                 value={successDescription} 

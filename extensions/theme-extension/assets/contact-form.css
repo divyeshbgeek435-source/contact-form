@@ -1,3 +1,12 @@
+ .error-text {
+    color: red;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .error-field {
+    border: 1px solid red;
+  }
+
 .dynamic-form {
   max-width: 800px;
   margin: 0 auto;
