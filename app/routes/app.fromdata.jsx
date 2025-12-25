@@ -11696,7 +11696,2126 @@
 
 
 
-import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
+// import { authenticate } from "../shopify.server";
+// import { json } from "@remix-run/node";
+// import { useLoaderData } from "react-router";
+// import {
+//     AppProvider,
+//     Page,
+//     Card,
+//     Text,
+//     TextField,
+//     Select,
+//     Button,
+//     Checkbox,
+//     BlockStack,
+//     InlineStack,
+//     InlineGrid,
+//     Grid,
+//     Box,
+//     Banner,
+//     Modal,
+//     FormLayout,
+//     Icon,
+// } from "@shopify/polaris";
+// import enTranslations from "@shopify/polaris/locales/en.json";
+// import {
+//     EditIcon, DeleteIcon
+// } from '@shopify/polaris-icons';
+
+// export const loader = async ({ request }) => {
+//     const { admin } = await authenticate.admin(request);
+
+//     const response = await admin.graphql(`
+//     query {
+//       shop {
+//         id
+//         name
+//         myshopifyDomain
+//       }
+//     }
+//   `);
+
+//     const data = await response.json();
+//     return json({
+//         shop: data.data?.shop || { id: "", myshopifyDomain: "" },
+//     });
+// };
+
+// export default function CustomizeForm() {
+//     const [formName, setFormName] = useState("Contact");
+//     const [formDescription, setFormDescription] = useState("");
+//     const [submitButtonText, setSubmitButtonText] = useState("Submit");
+//     const [submitButtonIcon, setSubmitButtonIcon] = useState("");
+//     const [isSaving, setIsSaving] = useState(false);
+//     const [isModalOpen, setIsModalOpen] = useState(false);
+//     const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
+//     const [selectedFieldId, setSelectedFieldId] = useState(null);
+//     const [saveMessage, setSaveMessage] = useState(null);
+//     const [formSubmissionTitle, setFormSubmissionTitle] = useState("");
+//     const [successDescription, setSuccessDescription] = useState("");
+//     const { shop } = useLoaderData();
+//     const [fields, setFields] = useState([]);
+    
+//     // Validation popup state
+//     const [validationPopup, setValidationPopup] = useState({
+//         isOpen: false,
+//         message: ""
+//     });
+
+//     // Confirmation popup state
+//     const [confirmationPopup, setConfirmationPopup] = useState({
+//         isOpen: false,
+//         title: "",
+//         message: "",
+//         onConfirm: null
+//     });
+
+//     // Current field being edited/added
+//     const [currentField, setCurrentField] = useState({
+//         label: "",
+//         type: "text",
+//         placeholder: "",
+//         required: false,
+//         options: [],
+//     });
+
+//     // Fetch existing fields
+//     const fetchFields = async () => {
+//         try {
+//             const shopIdOnly = shop.id.split("/").pop();
+//             const response = await fetch(`http://localhost:5000/api/users/${shopIdOnly}`);
+//             if (response.ok) {
+//                 const result = await response.json();
+//                 setFields(result.data.formTemplates.fields || []);
+//             }
+//         } catch (error) {
+//             console.error("Error fetching fields:", error);
+//         }
+//     };
+
+//     useEffect(() => {
+//         fetchFields();
+//     }, [shop.id]);
+
+//     // Show validation popup
+//     const showValidationPopup = (message) => {
+//         setValidationPopup({
+//             isOpen: true,
+//             message: message
+//         });
+//     };
+
+//     // Close validation popup
+//     const closeValidationPopup = () => {
+//         setValidationPopup({
+//             isOpen: false,
+//             message: ""
+//         });
+//     };
+
+//     // Show confirmation popup
+//     const showConfirmationPopup = (title, message, onConfirm) => {
+//         setConfirmationPopup({
+//             isOpen: true,
+//             title: title,
+//             message: message,
+//             onConfirm: onConfirm
+//         });
+//     };
+
+//     // Close confirmation popup
+//     const closeConfirmationPopup = () => {
+//         setConfirmationPopup({
+//             isOpen: false,
+//             title: "",
+//             message: "",
+//             onConfirm: null
+//         });
+//     };
+
+//     // Handle confirmation action
+//     const handleConfirmAction = () => {
+//         if (confirmationPopup.onConfirm) {
+//             confirmationPopup.onConfirm();
+//         }
+//         closeConfirmationPopup();
+//     };
+
+//     // Open Add Field Modal
+//     const openAddModal = () => {
+//         setModalMode("add");
+//         setCurrentField({
+//             label: "",
+//             type: "text",
+//             placeholder: "",
+//             required: false,
+//             options: [],
+//         });
+//         setSelectedFieldId(null);
+//         setIsModalOpen(true);
+//     };
+
+//     // Open Edit Field Modal - With proper error handling
+//     const openEditModal = async (fieldId) => {
+//         const fieldToEdit = fields.find((f) => f._id === fieldId);
+
+//         if (!fieldToEdit) {
+//             setSaveMessage({ type: "error", text: "❌ Field not found" });
+//             setTimeout(() => setSaveMessage(null), 5000);
+//             return;
+//         }
+
+//         try {
+//             const shopIdOnly = shop.id.split("/").pop();
+//             const response = await fetch(
+//                 `http://localhost:5000/api/merchant/${shopIdOnly}/form/field/${fieldId}`
+//             );
+
+//             if (response.ok) {
+//                 const result = await response.json();
+//                 setModalMode("edit");
+//                 setSelectedFieldId(fieldId);
+//                 setCurrentField({
+//                     label: result.data.label || "",
+//                     type: result.data.type || "text",
+//                     placeholder: result.data.placeholder || "",
+//                     required: result.data.required || false,
+//                     options: result.data.options || [],
+//                 });
+//                 setIsModalOpen(true);
+//             } else {
+//                 // API failed, use existing data from fields array
+//                 console.warn("API call failed, using existing field data");
+//                 setModalMode("edit");
+//                 setSelectedFieldId(fieldId);
+//                 setCurrentField({
+//                     label: fieldToEdit.label || "",
+//                     type: fieldToEdit.type || "text",
+//                     placeholder: fieldToEdit.placeholder || "",
+//                     required: fieldToEdit.required || false,
+//                     options: fieldToEdit.options || [],
+//                 });
+//                 setIsModalOpen(true);
+//             }
+//         } catch (error) {
+//             // Network error, use existing data from fields array
+//             console.error("Error fetching field data:", error);
+//             setModalMode("edit");
+//             setSelectedFieldId(fieldId);
+//             setCurrentField({
+//                 label: fieldToEdit.label || "",
+//                 type: fieldToEdit.type || "text",
+//                 placeholder: fieldToEdit.placeholder || "",
+//                 required: fieldToEdit.required || false,
+//                 options: fieldToEdit.options || [],
+//             });
+//             setIsModalOpen(true);
+//         }
+//     };
+
+//     // Close Modal
+//     const closeModal = () => {
+//         setIsModalOpen(false);
+//         setSelectedFieldId(null);
+//         setCurrentField({
+//             label: "",
+//             type: "text",
+//             placeholder: "",
+//             required: false,
+//             options: [],
+//         });
+//     };
+
+//     // API: Add new field
+//     const addFieldAPI = async () => {
+//         try {
+//             const shopIdOnly = shop.id.split("/").pop();
+//             const response = await fetch(
+//                 `http://localhost:5000/api/merchant/${shopIdOnly}/form/field`,
+//                 {
+//                     method: "POST",
+//                     headers: { "Content-Type": "application/json" },
+//                     body: JSON.stringify({ fieldData: currentField }),
+//                 }
+//             );
+
+//             if (response.ok) {
+//                 const result = await response.json();
+//                 setSaveMessage({ type: "success", text: "✅ Field added successfully!" });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+//                 await fetchFields(); // Refresh fields
+//                 closeModal();
+//             } else {
+//                 const errText = await response.text();
+//                 setSaveMessage({ type: "error", text: `❌ Error adding field: ${errText}` });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+//             }
+//         } catch (err) {
+//             console.error("Network error while adding field:", err);
+//             setSaveMessage({ type: "error", text: `❌ Network error: ${err.message}` });
+//             setTimeout(() => setSaveMessage(null), 5000);
+//         }
+//     };
+
+//     // API: Update field
+//     const updateFieldAPI = async () => {
+//         try {
+//             const shopIdOnly = shop.id.split("/").pop();
+//             const response = await fetch(
+//                 `http://localhost:5000/api/merchant/${shopIdOnly}/form/field/${selectedFieldId}`,
+//                 {
+//                     method: "PUT",
+//                     headers: { "Content-Type": "application/json" },
+//                     body: JSON.stringify({ fieldData: currentField }),
+//                 }
+//             );
+
+//             if (response.ok) {
+//                 setSaveMessage({ type: "success", text: "✅ Field updated successfully!" });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+//                 await fetchFields(); // Refresh fields
+//                 closeModal();
+//             } else {
+//                 const errText = await response.text();
+//                 setSaveMessage({ type: "error", text: `❌ Error updating field: ${errText}` });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+//             }
+//         } catch (err) {
+//             console.error("Network error while updating field:", err);
+//             setSaveMessage({ type: "error", text: `❌ Network error: ${err.message}` });
+//             setTimeout(() => setSaveMessage(null), 5000);
+//         }
+//     };
+
+//     // API: Delete field
+//     const deleteFieldAPI = async (fieldId) => {
+//         showConfirmationPopup(
+//             "Delete Field",
+//             "Are you sure you want to delete this field? This action cannot be undone.",
+//             async () => {
+//                 try {
+//                     const shopIdOnly = shop.id.split("/").pop();
+//                     const response = await fetch(
+//                         `http://localhost:5000/api/merchant/${shopIdOnly}/form/field/${fieldId}`,
+//                         { method: "DELETE" }
+//                     );
+
+//                     if (response.ok) {
+//                         setSaveMessage({ type: "success", text: "✅ Field deleted successfully!" });
+//                         setTimeout(() => setSaveMessage(null), 5000);
+//                         await fetchFields(); // Refresh fields without reload
+//                     } else {
+//                         const errText = await response.text();
+//                         setSaveMessage({ type: "error", text: `❌ Error deleting field: ${errText}` });
+//                         setTimeout(() => setSaveMessage(null), 5000);
+//                     }
+//                 } catch (err) {
+//                     console.error("Network error while deleting field:", err);
+//                     setSaveMessage({ type: "error", text: `❌ Network error: ${err.message}` });
+//                     setTimeout(() => setSaveMessage(null), 5000);
+//                 }
+//             }
+//         );
+//     };
+
+//     // Validate field data before saving
+//     const validateFieldData = () => {
+//         if (!currentField.label.trim()) {
+//             showValidationPopup("Please enter a field label");
+//             return false;
+//         }
+
+//         // Check if email field is required
+//         if (currentField.type === "email" && !currentField.required) {
+//             showValidationPopup("Email field must be marked as required");
+//             return false;
+//         }
+
+//         // Validate dropdown, radio, and checkbox options
+//         if (["dropdown", "radio", "checkbox"].includes(currentField.type)) {
+//             if (currentField.options.length === 0) {
+//                 showValidationPopup(`Please add at least one option for ${currentField.type} field`);
+//                 return false;
+//             }
+//         }
+
+//         return true;
+//     };
+
+//     // Handle Save in Modal
+//     const handleModalSave = () => {
+//         if (!validateFieldData()) {
+//             return;
+//         }
+
+//         if (modalMode === "add") {
+//             addFieldAPI();
+//         } else {
+//             updateFieldAPI();
+//         }
+//     };
+
+//     // Update current field state
+//     const updateCurrentField = (key, value) => {
+//         // If type is changed to email, automatically set required to true
+//         if (key === "type" && value === "email") {
+//             setCurrentField({ ...currentField, [key]: value, required: true });
+//         } else {
+//             setCurrentField({ ...currentField, [key]: value });
+//         }
+//     };
+
+//     // Add option to current field
+//     const [optionInputPopup, setOptionInputPopup] = useState({
+//         isOpen: false,
+//         mode: "add", // "add" or "edit"
+//         editIndex: null,
+//         label: "",
+//         value: ""
+//     });
+
+//     const openAddOptionPopup = () => {
+//         setOptionInputPopup({
+//             isOpen: true,
+//             mode: "add",
+//             editIndex: null,
+//             label: "",
+//             value: ""
+//         });
+//     };
+
+//     const openEditOptionPopup = (index) => {
+//         const currentOption = currentField.options[index];
+//         if (!currentOption) return;
+
+//         setOptionInputPopup({
+//             isOpen: true,
+//             mode: "edit",
+//             editIndex: index,
+//             label: currentOption.label,
+//             value: currentOption.value
+//         });
+//     };
+
+//     const closeOptionInputPopup = () => {
+//         setOptionInputPopup({
+//             isOpen: false,
+//             mode: "add",
+//             editIndex: null,
+//             label: "",
+//             value: ""
+//         });
+//     };
+
+//     const handleSaveOption = () => {
+//         if (!optionInputPopup.label.trim()) {
+//             showValidationPopup("Please enter an option label");
+//             return;
+//         }
+//         if (!optionInputPopup.value.trim()) {
+//             showValidationPopup("Please enter an option value");
+//             return;
+//         }
+
+//         if (optionInputPopup.mode === "add") {
+//             setCurrentField({
+//                 ...currentField,
+//                 options: [...currentField.options, { 
+//                     label: optionInputPopup.label, 
+//                     value: optionInputPopup.value 
+//                 }],
+//             });
+//         } else {
+//             const updatedOptions = currentField.options.map((opt, i) =>
+//                 i === optionInputPopup.editIndex 
+//                     ? { label: optionInputPopup.label, value: optionInputPopup.value } 
+//                     : opt
+//             );
+//             setCurrentField({ ...currentField, options: updatedOptions });
+//         }
+//         closeOptionInputPopup();
+//     };
+
+//     const addOption = () => {
+//         openAddOptionPopup();
+//     };
+
+//     // Edit option
+//     const editOption = (index) => {
+//         openEditOptionPopup(index);
+//     };
+
+//     // Delete option
+//     const deleteOption = (index) => {
+//         showConfirmationPopup(
+//             "Delete Option",
+//             "Are you sure you want to delete this option?",
+//             () => {
+//                 const updatedOptions = currentField.options.filter((_, i) => i !== index);
+//                 setCurrentField({ ...currentField, options: updatedOptions });
+//             }
+//         );
+//     };
+
+//     // Save entire form config
+//     async function saveFormConfig() {
+//         setIsSaving(true);
+//         const payload = {
+//             storeName: shop.myshopifyDomain,
+//             formData: {
+//                 name: formName,
+//                 description: formDescription,
+//                 formSubmissionTitle,
+//                 successDescription,
+//                 meta: { createdBy: "AdminUser", published: false },
+//             },
+//         };
+
+//         try {
+//             const shopIdOnly = shop.id.split("/").pop();
+//             const response = await fetch(`http://localhost:5000/api/merchant/${shopIdOnly}/form`, {
+//                 method: "POST",
+//                 headers: { "Content-Type": "application/json" },
+//                 body: JSON.stringify(payload),
+//             });
+
+//             if (response.ok) {
+//                 setSaveMessage({ type: "success", title: formSubmissionTitle, text: successDescription });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+//             } else {
+//                 const errText = await response.text();
+//                 setSaveMessage({ type: "error", text: `❌ Error saving form: ${errText}` });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+//             }
+//         } catch (error) {
+//             setSaveMessage({ type: "error", text: `❌ Network error: ${error.message}` });
+//             setTimeout(() => setSaveMessage(null), 5000);
+//         } finally {
+//             setIsSaving(false);
+//         }
+//     }
+
+//     // Get field icon
+//     function getFieldIcon(type) {
+//         const icons = {
+//             text: "A",
+//             email: "@",
+//             number: "#",
+//             textarea: "≡",
+//             dropdown: "▼",
+//             radio: "○",
+//             checkbox: "☑"
+//         };
+//         return icons[type] || "A";
+//     }
+
+//     return (
+//         <AppProvider i18n={enTranslations}>
+//             <Page title="Form Builder">
+//                 <BlockStack gap="500">
+//                     <Grid>
+//                         {/* Left Column */}
+//                         <Grid.Cell columnSpan={{ xs: 6, sm: 6, md: 7, lg: 7, xl: 7 }}>
+//                             <BlockStack gap="400">
+//                                 {/* Form Settings */}
+//                                 <Card>
+//                                     <BlockStack gap="400">
+//                                         <Text variant="headingMd" as="h2">Form</Text>
+//                                         <TextField label="Title" value={formName} onChange={setFormName} autoComplete="off" maxLength={120} showCharacterCount />
+//                                         <TextField label="Content" value={formDescription} onChange={setFormDescription} multiline={3} autoComplete="off" maxLength={120} showCharacterCount />
+//                                         <TextField label="Form Submission Title" value={formSubmissionTitle} onChange={setFormSubmissionTitle} autoComplete="off" />
+//                                         <TextField label="Success Description" value={successDescription} onChange={setSuccessDescription} multiline={3} autoComplete="off" />
+//                                     </BlockStack>
+//                                     <div style={{ marginTop: "10px" }}>
+//                                         <Button variant="primary" tone={isSaving ? "subdued" : "success"} onClick={saveFormConfig} disabled={isSaving} loading={isSaving}>Save Form</Button>
+//                                     </div>
+//                                 </Card>
+
+
+//                                 {/* Fields Section */}
+//                                 <Card>
+//                                     <BlockStack gap="400">
+//                                         <InlineStack align="space-between" blockAlign="center">
+//                                             <Text variant="headingMd" as="h2">Fields</Text>
+//                                             <Button variant="primary" size="slim" onClick={openAddModal}>Add Form Field</Button>
+//                                         </InlineStack>
+
+//                                         <BlockStack gap="200">
+//                                             {fields.length === 0 ? (
+//                                                 <Banner tone="info">No fields added yet. Click "Add Form Field" to start building your form.</Banner>
+//                                             ) : (
+//                                                 <BlockStack gap="200">
+//                                                     {fields.map((field) => (
+//                                                         <Box key={field._id} padding="300" background="bg-surface" borderRadius="200">
+//                                                             <InlineStack gap="300" align="space-between" blockAlign="center">
+//                                                                 <InlineStack gap="300" blockAlign="center">
+//                                                                     <Text variant="bodyMd" tone="subdued" fontWeight="medium">{getFieldIcon(field.type)}</Text>
+//                                                                     <Text variant="bodyMd" fontWeight="medium">{field.label || "Untitled Field"} {field.required && <Text as="span" tone="critical">*</Text>}</Text>
+//                                                                 </InlineStack>
+//                                                                 <InlineStack gap="200">
+//                                                                     <Button plain onClick={() => openEditModal(field._id)}> <Icon
+//                                                                         source={EditIcon}
+//                                                                         tone="base"
+//                                                                     /></Button>
+//                                                                     <Button plain tone="critical" onClick={() => deleteFieldAPI(field._id)}> <Icon
+//                                                                         source={DeleteIcon}
+//                                                                         tone="base"
+//                                                                     /></Button>
+//                                                                 </InlineStack>
+//                                                             </InlineStack>
+//                                                         </Box>
+//                                                     ))}
+//                                                 </BlockStack>
+//                                             )}
+//                                         </BlockStack>
+//                                     </BlockStack>
+//                                 </Card>
+
+//                                 {/* Save Message */}
+//                                 {saveMessage && <Banner title={saveMessage.title} tone={saveMessage.type === "success" ? "success" : "critical"}>{saveMessage.text}</Banner>}
+
+//                                 {/* Save Button */}
+//                             </BlockStack>
+//                         </Grid.Cell>
+
+//                         {/* Right Column - Preview */}
+//                         <Grid.Cell columnSpan={{ xs: 6, sm: 6, md: 5, lg: 5, xl: 5 }}>
+//                             <Box position="sticky" top="16px">
+//                                 <Card>
+//                                     <BlockStack gap="400">
+//                                         <Box padding="500" background="bg-surface" borderRadius="300">
+//                                             <BlockStack gap="400">
+//                                                 <Text variant="headingLg" as="h1">{formName || "Form Title"}</Text>
+//                                                 {formDescription && <Text as="p" tone="subdued">{formDescription}</Text>}
+
+//                                                 {fields.length === 0 ? (
+//                                                     <Box padding="800"><Text variant="bodyMd" tone="subdued" alignment="center">No fields added yet. Click "Add Form Field" to start building your form.</Text></Box>
+//                                                 ) : (
+//                                                     <BlockStack gap="400">
+//                                                         {fields.map((f) => (
+//                                                             <BlockStack key={f._id} gap="200">
+//                                                                 <Text as="label" variant="bodyMd" fontWeight="semibold">{f.label || "Untitled Field"} {f.required && <Text as="span" tone="critical">*</Text>}</Text>
+//                                                                 {["text", "email", "number"].includes(f.type) && <TextField type={f.type} placeholder={f.placeholder} name={`field-${f._id}`} autoComplete="off" disabled />}
+//                                                                 {f.type === "textarea" && <TextField multiline={4} placeholder={f.placeholder} name={`field-${f._id}`} autoComplete="off" disabled />}
+//                                                                 {f.type === "dropdown" && <Select name={`field-${f._id}`} options={[{ label: "Select an option", value: "" }, ...f.options.map(opt => ({ label: opt.label, value: opt.value }))]} disabled />}
+//                                                                 {f.type === "radio" && <BlockStack gap="200">{f.options.map((opt, i) => (<InlineStack key={i} gap="200" align="start"><input type="radio" name={`field-${f._id}`} value={opt.value} id={`field-${f._id}-${i}`} disabled /><Text as="label" htmlFor={`field-${f._id}-${i}`} variant="bodyMd">{opt.label}</Text></InlineStack>))}</BlockStack>}
+//                                                                 {f.type === "checkbox" && <BlockStack gap="200">{f.options.map((opt, i) => (<Checkbox key={i} label={opt.label} checked={false} disabled />))}</BlockStack>}
+//                                                             </BlockStack>
+//                                                         ))}
+//                                                         <Button variant="primary" disabled fullWidth>{submitButtonIcon} {submitButtonText}</Button>
+//                                                     </BlockStack>
+//                                                 )}
+//                                             </BlockStack>
+//                                         </Box>
+//                                     </BlockStack>
+//                                 </Card>
+//                             </Box>
+//                         </Grid.Cell>
+//                     </Grid>
+//                 </BlockStack>
+
+//                 {/* Add/Edit Field Modal */}
+//                 <Modal
+//                     open={isModalOpen}
+//                     onClose={closeModal}
+//                     title={modalMode === "add" ? "Add New Field" : "Edit Field"}
+//                     primaryAction={{ content: "Save", onAction: handleModalSave }}
+//                     secondaryActions={[{ content: "Cancel", onAction: closeModal }]}
+//                 >
+//                     <Modal.Section>
+//                         <FormLayout>
+//                             <TextField
+//                                 label="Field Label"
+//                                 placeholder="Enter field label"
+//                                 value={currentField.label}
+//                                 onChange={(value) => updateCurrentField("label", value)}
+//                                 autoComplete="off"
+//                                 helpText="The label that appears above this field"
+//                             />
+
+//                             <Select
+//                                 label="Field Type"
+//                                 options={[
+//                                     { label: "Text Input", value: "text" },
+//                                     { label: "Email Input", value: "email" },
+//                                     { label: "Number Input", value: "number" },
+//                                     { label: "Textarea", value: "textarea" },
+//                                     { label: "Dropdown Select", value: "dropdown" },
+//                                     { label: "Radio Group", value: "radio" },
+//                                     { label: "Checkbox Group", value: "checkbox" },
+//                                 ]}
+//                                 value={currentField.type}
+//                                 onChange={(value) => updateCurrentField("type", value)}
+//                                 helpText="Select the type of input for this field"
+//                             />
+
+//                             {["text", "email", "number", "textarea"].includes(currentField.type) && (
+//                                 <TextField
+//                                     label="Placeholder Text"
+//                                     placeholder="Enter placeholder"
+//                                     value={currentField.placeholder}
+//                                     onChange={(value) => updateCurrentField("placeholder", value)}
+//                                     autoComplete="off"
+//                                     helpText="Hint text shown inside the field"
+//                                 />
+//                             )}
+
+//                             <Checkbox
+//                                 label="Required Field"
+//                                 checked={currentField.required}
+//                                 onChange={(checked) => updateCurrentField("required", checked)}
+//                                 helpText={currentField.type === "email" ? "Email fields are always required" : "Users must fill this field before submitting"}
+//                                 disabled={currentField.type === "email"}
+//                             />
+
+//                             {["dropdown", "radio", "checkbox"].includes(currentField.type) && (
+//                                 <Box padding="400" background="bg-surface-secondary" borderRadius="200">
+//                                     <BlockStack gap="300">
+//                                         <Text variant="bodyMd" fontWeight="semibold">Options</Text>
+//                                         {currentField.options.length === 0 ? (
+//                                             <Text variant="bodySm" tone="subdued">No options added yet. Click "Add Option" below to add choices.</Text>
+//                                         ) : (
+//                                             <BlockStack gap="200">
+//                                                 {currentField.options.map((opt, i) => (
+//                                                     <Box key={i} padding="200" background="bg-surface" borderRadius="100">
+//                                                         <BlockStack gap="200">
+//                                                             <InlineStack align="space-between">
+//                                                                 <Text variant="bodyMd" fontWeight="semibold">Option {i + 1}</Text>
+//                                                                 <InlineStack gap="100">
+//                                                                     <Button size="slim" onClick={() => editOption(i)}> <Icon
+//                                                                         source={EditIcon}
+//                                                                         tone="base"
+//                                                                     /></Button>
+//                                                                     <Button size="slim" tone="critical" onClick={() => deleteOption(i)}><Icon
+//                                                                         source={DeleteIcon}
+//                                                                         tone="base"
+//                                                                     /></Button>
+//                                                                 </InlineStack>
+//                                                             </InlineStack>
+//                                                             <InlineGrid columns={2} gap="200">
+//                                                                 <TextField value={opt.label} readOnly autoComplete="off" label="Label (Display)" />
+//                                                                 <TextField value={opt.value} readOnly autoComplete="off" label="Value (Saved)" />
+//                                                             </InlineGrid>
+//                                                         </BlockStack>
+//                                                     </Box>
+//                                                 ))}
+//                                             </BlockStack>
+//                                         )}
+//                                         <Button size="slim" onClick={addOption}>Add Option</Button>
+//                                     </BlockStack>
+//                                 </Box>
+//                             )}
+//                         </FormLayout>
+//                     </Modal.Section>
+//                 </Modal>
+
+//                 {/* Validation Popup Modal */}
+//                 <Modal
+//                     open={validationPopup.isOpen}
+//                     onClose={closeValidationPopup}
+//                     title="Validation Error"
+//                     primaryAction={{
+//                         content: "OK",
+//                         onAction: closeValidationPopup
+//                     }}
+//                 >
+//                     <Modal.Section>
+//                         <Text variant="bodyMd">{validationPopup.message}</Text>
+//                     </Modal.Section>
+//                 </Modal>
+
+//                 {/* Confirmation Popup Modal */}
+//                 <Modal
+//                     open={confirmationPopup.isOpen}
+//                     onClose={closeConfirmationPopup}
+//                     title={confirmationPopup.title}
+//                     primaryAction={{
+//                         content: "Confirm",
+//                         onAction: handleConfirmAction,
+//                         destructive: true
+//                     }}
+//                     secondaryActions={[{
+//                         content: "Cancel",
+//                         onAction: closeConfirmationPopup
+//                     }]}
+//                 >
+//                     <Modal.Section>
+//                         <Text variant="bodyMd">{confirmationPopup.message}</Text>
+//                     </Modal.Section>
+//                 </Modal>
+
+//                 {/* Option Input Popup Modal */}
+//                 <Modal
+//                     open={optionInputPopup.isOpen}
+//                     onClose={closeOptionInputPopup}
+//                     title={optionInputPopup.mode === "add" ? "Add Option" : "Edit Option"}
+//                     primaryAction={{
+//                         content: "Save",
+//                         onAction: handleSaveOption
+//                     }}
+//                     secondaryActions={[{
+//                         content: "Cancel",
+//                         onAction: closeOptionInputPopup
+//                     }]}
+//                 >
+//                     <Modal.Section>
+//                         <FormLayout>
+//                             <TextField
+//                                 label="Option Label (Display Text)"
+//                                 placeholder="e.g., Small, Medium, Large"
+//                                 value={optionInputPopup.label}
+//                                 onChange={(value) => setOptionInputPopup({...optionInputPopup, label: value})}
+//                                 autoComplete="off"
+//                                 helpText="This is what users will see"
+//                             />
+//                             <TextField
+//                                 label="Option Value (Saved Value)"
+//                                 placeholder="e.g., small, medium, large"
+//                                 value={optionInputPopup.value}
+//                                 onChange={(value) => setOptionInputPopup({...optionInputPopup, value: value})}
+//                                 autoComplete="off"
+//                                 helpText="This is the value that will be saved in the database"
+//                             />
+//                         </FormLayout>
+//                     </Modal.Section>
+//                 </Modal>
+//             </Page>
+//         </AppProvider>
+//     );
+// }
+
+
+
+
+// import { useState, useEffect } from "react";
+// import { authenticate } from "../shopify.server";
+// import { json } from "@remix-run/node";
+// import { useLoaderData } from "react-router";
+// import {
+//     AppProvider,
+//     Page,
+//     Card,
+//     Text,
+//     TextField,
+//     Select,
+//     Button,
+//     Checkbox,
+//     BlockStack,
+//     InlineStack,
+//     InlineGrid,
+//     Grid,
+//     Box,
+//     Banner,
+//     Modal,
+//     FormLayout,
+//     Icon,
+//     Spinner,
+// } from "@shopify/polaris";
+// import enTranslations from "@shopify/polaris/locales/en.json";
+// import {
+//     EditIcon, DeleteIcon, ChevronUpIcon, ChevronDownIcon, DragHandleIcon
+// } from '@shopify/polaris-icons';
+
+// export const loader = async ({ request }) => {
+//     const { admin } = await authenticate.admin(request);
+
+//     const response = await admin.graphql(`
+//     query {
+//       shop {
+//         id
+//         name
+//         myshopifyDomain
+//       }
+//     }
+//   `);
+
+//     const data = await response.json();
+//     return json({
+//         shop: data.data?.shop || { id: "", myshopifyDomain: "" },
+//     });
+// };
+
+// export default function CustomizeForm() {
+//     const [formName, setFormName] = useState("Contact Form");
+//     const [formDescription, setFormDescription] = useState("Please fill out the form below and we'll get back to you soon.");
+//     const [submitButtonText, setSubmitButtonText] = useState("Submit");
+//     const [submitButtonIcon, setSubmitButtonIcon] = useState("");
+//     const [isSaving, setIsSaving] = useState(false);
+//     const [isModalOpen, setIsModalOpen] = useState(false);
+//     const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
+//     const [selectedFieldId, setSelectedFieldId] = useState(null);
+//     const [saveMessage, setSaveMessage] = useState(null);
+//     const [formSubmissionTitle, setFormSubmissionTitle] = useState("Thank You!");
+//     const [successDescription, setSuccessDescription] = useState("Your form has been submitted successfully. We'll be in touch soon!");
+//     const { shop } = useLoaderData();
+//     const [fields, setFields] = useState([]);
+    
+//     // Validation popup state
+//     const [validationPopup, setValidationPopup] = useState({
+//         isOpen: false,
+//         message: ""
+//     });
+
+//     // Confirmation popup state
+//     const [confirmationPopup, setConfirmationPopup] = useState({
+//         isOpen: false,
+//         title: "",
+//         message: "",
+//         onConfirm: null
+//     });
+
+//     // Current field being edited/added
+//     const [currentField, setCurrentField] = useState({
+//         label: "",
+//         type: "text",
+//         placeholder: "",
+//         required: false,
+//         options: [],
+//     });
+
+//     // Option input popup state
+//     const [optionInputPopup, setOptionInputPopup] = useState({
+//         isOpen: false,
+//         mode: "add",
+//         editIndex: null,
+//         label: "",
+//         value: ""
+//     });
+
+//     // Form submission state
+//     const [isSubmitting, setIsSubmitting] = useState(false);
+//     const [formData, setFormData] = useState({});
+
+//     // Fetch existing fields
+//     const fetchFields = async () => {
+//         try {
+//             const shopIdOnly = shop.id.split("/").pop();
+//             const response = await fetch(`http://localhost:5000/api/users/${shopIdOnly}`);
+//             if (response.ok) {
+//                 const result = await response.json();
+//                 setFields(result.data.formTemplates.fields || []);
+//             }
+//         } catch (error) {
+//             console.error("Error fetching fields:", error);
+//         }
+//     };
+
+//     useEffect(() => {
+//         fetchFields();
+//     }, [shop.id]);
+
+//     // Show validation popup
+//     const showValidationPopup = (message) => {
+//         setValidationPopup({
+//             isOpen: true,
+//             message: message
+//         });
+//     };
+
+//     // Close validation popup
+//     const closeValidationPopup = () => {
+//         setValidationPopup({
+//             isOpen: false,
+//             message: ""
+//         });
+//     };
+
+//     // Show confirmation popup
+//     const showConfirmationPopup = (title, message, onConfirm) => {
+//         setConfirmationPopup({
+//             isOpen: true,
+//             title: title,
+//             message: message,
+//             onConfirm: onConfirm
+//         });
+//     };
+
+//     // Close confirmation popup
+//     const closeConfirmationPopup = () => {
+//         setConfirmationPopup({
+//             isOpen: false,
+//             title: "",
+//             message: "",
+//             onConfirm: null
+//         });
+//     };
+
+//     // Handle confirmation action
+//     const handleConfirmAction = () => {
+//         if (confirmationPopup.onConfirm) {
+//             confirmationPopup.onConfirm();
+//         }
+//         closeConfirmationPopup();
+//     };
+
+//     // Open Add Field Modal
+//     const openAddModal = () => {
+//         setModalMode("add");
+//         setCurrentField({
+//             label: "",
+//             type: "text",
+//             placeholder: "",
+//             required: false,
+//             options: [],
+//         });
+//         setSelectedFieldId(null);
+//         setIsModalOpen(true);
+//     };
+
+//     // Open Edit Field Modal
+//     const openEditModal = async (fieldId) => {
+//         const fieldToEdit = fields.find((f) => f._id === fieldId);
+
+//         if (!fieldToEdit) {
+//             setSaveMessage({ type: "error", text: "❌ Field not found" });
+//             setTimeout(() => setSaveMessage(null), 5000);
+//             return;
+//         }
+
+//         try {
+//             const shopIdOnly = shop.id.split("/").pop();
+//             const response = await fetch(
+//                 `http://localhost:5000/api/merchant/${shopIdOnly}/form/field/${fieldId}`
+//             );
+
+//             if (response.ok) {
+//                 const result = await response.json();
+//                 setModalMode("edit");
+//                 setSelectedFieldId(fieldId);
+//                 setCurrentField({
+//                     label: result.data.label || "",
+//                     type: result.data.type || "text",
+//                     placeholder: result.data.placeholder || "",
+//                     required: result.data.required || false,
+//                     options: result.data.options || [],
+//                 });
+//                 setIsModalOpen(true);
+//             } else {
+//                 console.warn("API call failed, using existing field data");
+//                 setModalMode("edit");
+//                 setSelectedFieldId(fieldId);
+//                 setCurrentField({
+//                     label: fieldToEdit.label || "",
+//                     type: fieldToEdit.type || "text",
+//                     placeholder: fieldToEdit.placeholder || "",
+//                     required: fieldToEdit.required || false,
+//                     options: fieldToEdit.options || [],
+//                 });
+//                 setIsModalOpen(true);
+//             }
+//         } catch (error) {
+//             console.error("Error fetching field data:", error);
+//             setModalMode("edit");
+//             setSelectedFieldId(fieldId);
+//             setCurrentField({
+//                 label: fieldToEdit.label || "",
+//                 type: fieldToEdit.type || "text",
+//                 placeholder: fieldToEdit.placeholder || "",
+//                 required: fieldToEdit.required || false,
+//                 options: fieldToEdit.options || [],
+//             });
+//             setIsModalOpen(true);
+//         }
+//     };
+
+//     // Close Modal
+//     const closeModal = () => {
+//         setIsModalOpen(false);
+//         setSelectedFieldId(null);
+//         setCurrentField({
+//             label: "",
+//             type: "text",
+//             placeholder: "",
+//             required: false,
+//             options: [],
+//         });
+//     };
+
+//     // API: Add new field
+//     const addFieldAPI = async () => {
+//         try {
+//             const shopIdOnly = shop.id.split("/").pop();
+//             const response = await fetch(
+//                 `http://localhost:5000/api/merchant/${shopIdOnly}/form/field`,
+//                 {
+//                     method: "POST",
+//                     headers: { "Content-Type": "application/json" },
+//                     body: JSON.stringify({ fieldData: currentField }),
+//                 }
+//             );
+
+//             if (response.ok) {
+//                 setSaveMessage({ type: "success", text: "✅ Field added successfully!" });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+//                 await fetchFields();
+//                 closeModal();
+//             } else {
+//                 const errText = await response.text();
+//                 setSaveMessage({ type: "error", text: `❌ Error adding field: ${errText}` });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+//             }
+//         } catch (err) {
+//             console.error("Network error while adding field:", err);
+//             setSaveMessage({ type: "error", text: `❌ Network error: ${err.message}` });
+//             setTimeout(() => setSaveMessage(null), 5000);
+//         }
+//     };
+
+//     // API: Update field
+//     const updateFieldAPI = async () => {
+//         try {
+//             const shopIdOnly = shop.id.split("/").pop();
+//             const response = await fetch(
+//                 `http://localhost:5000/api/merchant/${shopIdOnly}/form/field/${selectedFieldId}`,
+//                 {
+//                     method: "PUT",
+//                     headers: { "Content-Type": "application/json" },
+//                     body: JSON.stringify({ fieldData: currentField }),
+//                 }
+//             );
+
+//             if (response.ok) {
+//                 setSaveMessage({ type: "success", text: "✅ Field updated successfully!" });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+//                 await fetchFields();
+//                 closeModal();
+//             } else {
+//                 const errText = await response.text();
+//                 setSaveMessage({ type: "error", text: `❌ Error updating field: ${errText}` });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+//             }
+//         } catch (err) {
+//             console.error("Network error while updating field:", err);
+//             setSaveMessage({ type: "error", text: `❌ Network error: ${err.message}` });
+//             setTimeout(() => setSaveMessage(null), 5000);
+//         }
+//     };
+
+//     // API: Delete field
+//     const deleteFieldAPI = async (fieldId) => {
+//         showConfirmationPopup(
+//             "Delete Field",
+//             "Are you sure you want to delete this field? This action cannot be undone.",
+//             async () => {
+//                 try {
+//                     const shopIdOnly = shop.id.split("/").pop();
+//                     const response = await fetch(
+//                         `http://localhost:5000/api/merchant/${shopIdOnly}/form/field/${fieldId}`,
+//                         { method: "DELETE" }
+//                     );
+
+//                     if (response.ok) {
+//                         setSaveMessage({ type: "success", text: "✅ Field deleted successfully!" });
+//                         setTimeout(() => setSaveMessage(null), 5000);
+//                         await fetchFields();
+//                     } else {
+//                         const errText = await response.text();
+//                         setSaveMessage({ type: "error", text: `❌ Error deleting field: ${errText}` });
+//                         setTimeout(() => setSaveMessage(null), 5000);
+//                     }
+//                 } catch (err) {
+//                     console.error("Network error while deleting field:", err);
+//                     setSaveMessage({ type: "error", text: `❌ Network error: ${err.message}` });
+//                     setTimeout(() => setSaveMessage(null), 5000);
+//                 }
+//             }
+//         );
+//     };
+
+//     // Validate field data before saving
+//     const validateFieldData = () => {
+//         if (!currentField.label.trim()) {
+//             showValidationPopup("Please enter a field label");
+//             return false;
+//         }
+
+//         // Check if email field is required
+//         if (currentField.type === "email" && !currentField.required) {
+//             showValidationPopup("Email field must be marked as required");
+//             return false;
+//         }
+
+//         // Validate dropdown, radio, and checkbox options
+//         if (["dropdown", "radio", "checkbox"].includes(currentField.type)) {
+//             if (currentField.options.length === 0) {
+//                 showValidationPopup(`Please add at least one option for ${currentField.type} field`);
+//                 return false;
+//             }
+//         }
+
+//         return true;
+//     };
+
+//     // Handle Save in Modal
+//     const handleModalSave = () => {
+//         if (!validateFieldData()) {
+//             return;
+//         }
+
+//         if (modalMode === "add") {
+//             addFieldAPI();
+//         } else {
+//             updateFieldAPI();
+//         }
+//     };
+
+//     // Update current field state
+//     const updateCurrentField = (key, value) => {
+//         if (key === "type" && value === "email") {
+//             setCurrentField({ ...currentField, [key]: value, required: true });
+//         } else {
+//             setCurrentField({ ...currentField, [key]: value });
+//         }
+//     };
+
+//     // Option popup handlers
+//     const openAddOptionPopup = () => {
+//         setOptionInputPopup({
+//             isOpen: true,
+//             mode: "add",
+//             editIndex: null,
+//             label: "",
+//             value: ""
+//         });
+//     };
+
+//     const openEditOptionPopup = (index) => {
+//         const currentOption = currentField.options[index];
+//         if (!currentOption) return;
+
+//         setOptionInputPopup({
+//             isOpen: true,
+//             mode: "edit",
+//             editIndex: index,
+//             label: currentOption.label,
+//             value: currentOption.value
+//         });
+//     };
+
+//     const closeOptionInputPopup = () => {
+//         setOptionInputPopup({
+//             isOpen: false,
+//             mode: "add",
+//             editIndex: null,
+//             label: "",
+//             value: ""
+//         });
+//     };
+
+//     const handleSaveOption = () => {
+//         if (!optionInputPopup.label.trim()) {
+//             showValidationPopup("Please enter an option label");
+//             return;
+//         }
+//         if (!optionInputPopup.value.trim()) {
+//             showValidationPopup("Please enter an option value");
+//             return;
+//         }
+
+//         if (optionInputPopup.mode === "add") {
+//             setCurrentField({
+//                 ...currentField,
+//                 options: [...currentField.options, { 
+//                     label: optionInputPopup.label, 
+//                     value: optionInputPopup.value 
+//                 }],
+//             });
+//         } else {
+//             const updatedOptions = currentField.options.map((opt, i) =>
+//                 i === optionInputPopup.editIndex 
+//                     ? { label: optionInputPopup.label, value: optionInputPopup.value } 
+//                     : opt
+//             );
+//             setCurrentField({ ...currentField, options: updatedOptions });
+//         }
+//         closeOptionInputPopup();
+//     };
+
+//     const addOption = () => {
+//         openAddOptionPopup();
+//     };
+
+//     const editOption = (index) => {
+//         openEditOptionPopup(index);
+//     };
+
+//     const deleteOption = (index) => {
+//         showConfirmationPopup(
+//             "Delete Option",
+//             "Are you sure you want to delete this option?",
+//             () => {
+//                 const updatedOptions = currentField.options.filter((_, i) => i !== index);
+//                 setCurrentField({ ...currentField, options: updatedOptions });
+//             }
+//         );
+//     };
+
+//     // Validate form before saving
+//     const validateForm = () => {
+//         const hasEmailField = fields.some(field => field.type === "email");
+        
+//         if (!hasEmailField) {
+//             showValidationPopup("Form must contain at least one Email field before saving.");
+//             return false;
+//         }
+
+//         return true;
+//     };
+
+//     // Save entire form config
+//     async function saveFormConfig() {
+//         if (!validateForm()) {
+//             return;
+//         }
+
+//         setIsSaving(true);
+//         const payload = {
+//             storeName: shop.myshopifyDomain,
+//             formData: {
+//                 name: formName,
+//                 description: formDescription,
+//                 formSubmissionTitle,
+//                 successDescription,
+//                 meta: { createdBy: "AdminUser", published: false },
+//             },
+//         };
+
+//         try {
+//             const shopIdOnly = shop.id.split("/").pop();
+//             const response = await fetch(`http://localhost:5000/api/merchant/${shopIdOnly}/form`, {
+//                 method: "POST",
+//                 headers: { "Content-Type": "application/json" },
+//                 body: JSON.stringify(payload),
+//             });
+
+//             if (response.ok) {
+//                 setSaveMessage({ type: "success", title: formSubmissionTitle, text: successDescription });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+//             } else {
+//                 const errText = await response.text();
+//                 setSaveMessage({ type: "error", text: `❌ Error saving form: ${errText}` });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+//             }
+//         } catch (error) {
+//             setSaveMessage({ type: "error", text: `❌ Network error: ${error.message}` });
+//             setTimeout(() => setSaveMessage(null), 5000);
+//         } finally {
+//             setIsSaving(false);
+//         }
+//     }
+
+//     // Move field up
+//     const moveFieldUp = async (index) => {
+//         if (index === 0) return;
+        
+//         const newFields = [...fields];
+//         [newFields[index - 1], newFields[index]] = [newFields[index], newFields[index - 1]];
+//         setFields(newFields);
+        
+//         await updateFieldOrder(newFields);
+//     };
+
+//     // Move field down
+//     const moveFieldDown = async (index) => {
+//         if (index === fields.length - 1) return;
+        
+//         const newFields = [...fields];
+//         [newFields[index], newFields[index + 1]] = [newFields[index + 1], newFields[index]];
+//         setFields(newFields);
+        
+//         await updateFieldOrder(newFields);
+//     };
+
+//     // Update field order in backend
+//     const updateFieldOrder = async (orderedFields) => {
+//         try {
+//             const shopIdOnly = shop.id.split("/").pop();
+//             const fieldIds = orderedFields.map(f => f._id);
+            
+//             const response = await fetch(
+//                 `http://localhost:5000/api/merchant/${shopIdOnly}/form/fields/reorder`,
+//                 {
+//                     method: "PUT",
+//                     headers: { "Content-Type": "application/json" },
+//                     body: JSON.stringify({ fieldIds }),
+//                 }
+//             );
+
+//             if (response.ok) {
+//                 setSaveMessage({ type: "success", text: "✅ Field order updated!" });
+//                 setTimeout(() => setSaveMessage(null), 3000);
+//             }
+//         } catch (err) {
+//             console.error("Error updating field order:", err);
+//         }
+//     };
+
+//     // Handle form field change in preview
+//     const handleFieldChange = (fieldId, value) => {
+//         setFormData(prev => ({
+//             ...prev,
+//             [fieldId]: value
+//         }));
+//     };
+
+//     // Handle checkbox group change
+//     const handleCheckboxChange = (fieldId, optionValue, checked) => {
+//         setFormData(prev => {
+//             const currentValues = prev[fieldId] || [];
+//             if (checked) {
+//                 return {
+//                     ...prev,
+//                     [fieldId]: [...currentValues, optionValue]
+//                 };
+//             } else {
+//                 return {
+//                     ...prev,
+//                     [fieldId]: currentValues.filter(v => v !== optionValue)
+//                 };
+//             }
+//         });
+//     };
+
+//     // Submit form (preview form submission)
+//     const handleFormSubmit = async (e) => {
+//         e.preventDefault();
+//         setIsSubmitting(true);
+
+//         // Validate only required fields
+//         const missingRequiredFields = fields.filter(field => {
+//             if (!field.required) return false;
+//             const value = formData[field._id];
+//             return !value || (Array.isArray(value) && value.length === 0) || value.trim() === "";
+//         });
+
+//         if (missingRequiredFields.length > 0) {
+//             const fieldNames = missingRequiredFields.map(f => f.label).join(", ");
+//             showValidationPopup(`Please fill in the following required fields: ${fieldNames}`);
+//             setIsSubmitting(false);
+//             return;
+//         }
+
+//         // Get email field value
+//         const emailField = fields.find(f => f.type === "email");
+//         const emailValue = emailField ? formData[emailField._id] : null;
+
+//         try {
+//             const shopIdOnly = shop.id.split("/").pop();
+//             const response = await fetch(
+//                 `http://localhost:5000/api/merchant/${shopIdOnly}/form/submit`,
+//                 {
+//                     method: "POST",
+//                     headers: { "Content-Type": "application/json" },
+//                     body: JSON.stringify({
+//                         formData: formData,
+//                         email: emailValue,
+//                         formName: formName,
+//                         shopDomain: shop.myshopifyDomain
+//                     }),
+//                 }
+//             );
+
+//             if (response.ok) {
+//                 // Show success message
+//                 setSaveMessage({ 
+//                     type: "success", 
+//                     title: formSubmissionTitle, 
+//                     text: successDescription 
+//                 });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+                
+//                 // Reset form data
+//                 setFormData({});
+//             } else {
+//                 const errText = await response.text();
+//                 setSaveMessage({ 
+//                     type: "error", 
+//                     text: `❌ Error submitting form: ${errText}` 
+//                 });
+//                 setTimeout(() => setSaveMessage(null), 5000);
+//             }
+//         } catch (error) {
+//             setSaveMessage({ 
+//                 type: "error", 
+//                 text: `❌ Network error: ${error.message}` 
+//             });
+//             setTimeout(() => setSaveMessage(null), 5000);
+//         } finally {
+//             setIsSubmitting(false);
+//         }
+//     };
+
+//     // Get field icon
+//     function getFieldIcon(type) {
+//         const icons = {
+//             text: "A",
+//             email: "@",
+//             number: "#",
+//             textarea: "≡",
+//             dropdown: "▼",
+//             radio: "○",
+//             checkbox: "☑"
+//         };
+//         return icons[type] || "A";
+//     }
+
+//     return (
+//         <AppProvider i18n={enTranslations}>
+//             <Page 
+//                 title="Form Builder"
+//                 subtitle="Create and customize your contact form"
+//             >
+//                 <BlockStack gap="500">
+//                     <Grid>
+//                         {/* Left Column - Form Builder */}
+//                         <Grid.Cell columnSpan={{ xs: 6, sm: 6, md: 7, lg: 7, xl: 7 }}>
+//                             <BlockStack gap="500">
+//                                 {/* Form Settings Card */}
+//                                 <Card>
+//                                     <BlockStack gap="500">
+//                                         <Text variant="headingLg" as="h2">Form Settings</Text>
+//                                         <BlockStack gap="400">
+//                                             <TextField 
+//                                                 label="Form Title" 
+//                                                 value={formName} 
+//                                                 onChange={setFormName} 
+//                                                 autoComplete="off" 
+//                                                 maxLength={120} 
+//                                                 showCharacterCount 
+//                                                 helpText="The main heading displayed on your form"
+//                                             />
+//                                             <TextField 
+//                                                 label="Form Description" 
+//                                                 value={formDescription} 
+//                                                 onChange={setFormDescription} 
+//                                                 multiline={3} 
+//                                                 autoComplete="off" 
+//                                                 maxLength={250} 
+//                                                 showCharacterCount 
+//                                                 helpText="Brief description or instructions for form users"
+//                                             />
+//                                             <InlineGrid columns={2} gap="400">
+//                                                 <TextField 
+//                                                     label="Success Message Title" 
+//                                                     value={formSubmissionTitle} 
+//                                                     onChange={setFormSubmissionTitle} 
+//                                                     autoComplete="off" 
+//                                                     helpText="Title shown after successful submission"
+//                                                 />
+//                                                 <TextField 
+//                                                     label="Submit Button Text" 
+//                                                     value={submitButtonText} 
+//                                                     onChange={setSubmitButtonText} 
+//                                                     autoComplete="off"
+//                                                     helpText="Text displayed on the submit button"
+//                                                 />
+//                                             </InlineGrid>
+//                                             <TextField 
+//                                                 label="Success Message Description" 
+//                                                 value={successDescription} 
+//                                                 onChange={setSuccessDescription} 
+//                                                 multiline={2} 
+//                                                 autoComplete="off" 
+//                                                 helpText="Message shown to users after form submission"
+//                                             />
+//                                         </BlockStack>
+//                                         <Box paddingBlockStart="200">
+//                                             <Button 
+//                                                 variant="primary" 
+//                                                 size="large"
+//                                                 onClick={saveFormConfig} 
+//                                                 disabled={isSaving} 
+//                                                 loading={isSaving}
+//                                             >
+//                                                 Save Form Configuration
+//                                             </Button>
+//                                         </Box>
+//                                     </BlockStack>
+//                                 </Card>
+
+//                                 {/* Fields Management Card */}
+//                                 <Card>
+//                                     <BlockStack gap="500">
+//                                         <InlineStack align="space-between" blockAlign="center">
+//                                             <BlockStack gap="100">
+//                                                 <Text variant="headingLg" as="h2">Form Fields</Text>
+//                                                 <Text variant="bodySm" tone="subdued">
+//                                                     Add and organize fields for your form. Drag to reorder.
+//                                                 </Text>
+//                                             </BlockStack>
+//                                             <Button 
+//                                                 variant="primary" 
+//                                                 onClick={openAddModal}
+//                                             >
+//                                                 Add Field
+//                                             </Button>
+//                                         </InlineStack>
+
+//                                         <BlockStack gap="300">
+//                                             {fields.length === 0 ? (
+//                                                 <Box padding="600">
+//                                                     <Banner tone="info">
+//                                                         <BlockStack gap="200">
+//                                                             <Text variant="bodyMd" fontWeight="semibold">No fields yet</Text>
+//                                                             <Text variant="bodyMd">Click "Add Field" to start building your form. Remember to add at least one email field!</Text>
+//                                                         </BlockStack>
+//                                                     </Banner>
+//                                                 </Box>
+//                                             ) : (
+//                                                 <BlockStack gap="300">
+//                                                     {fields.map((field, index) => (
+//                                                         <Box 
+//                                                             key={field._id} 
+//                                                             padding="400" 
+//                                                             background="bg-surface-secondary" 
+//                                                             borderRadius="300" 
+//                                                             borderWidth="025" 
+//                                                             borderColor="border-secondary"
+//                                                         >
+//                                                             <InlineStack gap="400" align="space-between" blockAlign="center" wrap={false}>
+//                                                                 {/* Field Info */}
+//                                                                 <InlineStack gap="400" blockAlign="center" wrap={false}>
+//                                                                     <Box>
+//                                                                         <Icon source={DragHandleIcon} tone="subdued" />
+//                                                                     </Box>
+//                                                                     <Box 
+//                                                                         background="bg-fill-info" 
+//                                                                         padding="300" 
+//                                                                         borderRadius="200"
+//                                                                         minWidth="40px"
+//                                                                     >
+//                                                                         <Text 
+//                                                                             variant="headingMd" 
+//                                                                             tone="text-inverse" 
+//                                                                             fontWeight="bold" 
+//                                                                             alignment="center"
+//                                                                         >
+//                                                                             {getFieldIcon(field.type)}
+//                                                                         </Text>
+//                                                                     </Box>
+//                                                                     <BlockStack gap="100">
+//                                                                         <InlineStack gap="200" blockAlign="center" wrap={false}>
+//                                                                             <Text variant="headingSm" fontWeight="semibold">
+//                                                                                 {field.label || "Untitled Field"}
+//                                                                             </Text>
+//                                                                             {field.required && (
+//                                                                                 <Box 
+//                                                                                     background="bg-fill-critical" 
+//                                                                                     padding="025" 
+//                                                                                     paddingInlineStart="200"
+//                                                                                     paddingInlineEnd="200"
+//                                                                                     borderRadius="100"
+//                                                                                 >
+//                                                                                     <Text 
+//                                                                                         as="span" 
+//                                                                                         variant="bodySm" 
+//                                                                                         fontWeight="semibold" 
+//                                                                                         tone="text-inverse"
+//                                                                                     >
+//                                                                                         Required
+//                                                                                     </Text>
+//                                                                                 </Box>
+//                                                                             )}
+//                                                                             {field.type === "email" && (
+//                                                                                 <Box 
+//                                                                                     background="bg-fill-success" 
+//                                                                                     padding="025" 
+//                                                                                     paddingInlineStart="200"
+//                                                                                     paddingInlineEnd="200"
+//                                                                                     borderRadius="100"
+//                                                                                 >
+//                                                                                     <Text 
+//                                                                                         as="span" 
+//                                                                                         variant="bodySm" 
+//                                                                                         fontWeight="semibold" 
+//                                                                                         tone="text-inverse"
+//                                                                                     >
+//                                                                                         Email
+//                                                                                     </Text>
+//                                                                                 </Box>
+//                                                                             )}
+//                                                                         </InlineStack>
+//                                                                         <Text variant="bodySm" tone="subdued">
+//                                                                             {field.type.charAt(0).toUpperCase() + field.type.slice(1)} field
+//                                                                             {field.placeholder && ` • ${field.placeholder}`}
+//                                                                         </Text>
+//                                                                     </BlockStack>
+//                                                                 </InlineStack>
+
+//                                                                 {/* Action Buttons */}
+//                                                                 <InlineStack gap="100" wrap={false}>
+//                                                                     <Button 
+//                                                                         plain 
+//                                                                         onClick={() => moveFieldUp(index)}
+//                                                                         disabled={index === 0}
+//                                                                         accessibilityLabel="Move field up"
+//                                                                     >
+//                                                                         <Icon source={ChevronUpIcon} tone="base" />
+//                                                                     </Button>
+//                                                                     <Button 
+//                                                                         plain 
+//                                                                         onClick={() => moveFieldDown(index)}
+//                                                                         disabled={index === fields.length - 1}
+//                                                                         accessibilityLabel="Move field down"
+//                                                                     >
+//                                                                         <Icon source={ChevronDownIcon} tone="base" />
+//                                                                     </Button>
+//                                                                     <Box 
+//                                                                         borderInlineStartWidth="025" 
+//                                                                         borderColor="border" 
+//                                                                         paddingInlineStart="200"
+//                                                                         marginInlineStart="100"
+//                                                                     >
+//                                                                         <InlineStack gap="100">
+//                                                                             <Button 
+//                                                                                 plain 
+//                                                                                 onClick={() => openEditModal(field._id)}
+//                                                                                 accessibilityLabel="Edit field"
+//                                                                             >
+//                                                                                 <Icon source={EditIcon} tone="base" />
+//                                                                             </Button>
+//                                                                             <Button 
+//                                                                                 plain 
+//                                                                                 tone="critical" 
+//                                                                                 onClick={() => deleteFieldAPI(field._id)}
+//                                                                                 accessibilityLabel="Delete field"
+//                                                                             >
+//                                                                                 <Icon source={DeleteIcon} tone="base" />
+//                                                                             </Button>
+//                                                                         </InlineStack>
+//                                                                     </Box>
+//                                                                 </InlineStack>
+//                                                             </InlineStack>
+//                                                         </Box>
+//                                                     ))}
+//                                                 </BlockStack>
+//                                             )}
+//                                         </BlockStack>
+
+//                                         {fields.length > 0 && (
+//                                             <Banner tone="info">
+//                                                 <Text variant="bodySm">
+//                                                     💡 Tip: Use the arrow buttons to reorder fields. Only fields marked as "Required" must be filled before submission.
+//                                                 </Text>
+//                                             </Banner>
+//                                         )}
+//                                     </BlockStack>
+//                                 </Card>
+
+//                                 {/* Save Message */}
+//                                 {saveMessage && (
+//                                     <Banner 
+//                                         title={saveMessage.title} 
+//                                         tone={saveMessage.type === "success" ? "success" : "critical"}
+//                                         onDismiss={() => setSaveMessage(null)}
+//                                     >
+//                                         {saveMessage.text}
+//                                     </Banner>
+//                                 )}
+//                             </BlockStack>
+//                         </Grid.Cell>
+
+//                         {/* Right Column - Live Preview */}
+//                         <Grid.Cell columnSpan={{ xs: 6, sm: 6, md: 5, lg: 5, xl: 5 }}>
+//                             <Box position="sticky" insetBlockStart="400">
+//                                 <Card>
+//                                     <BlockStack gap="400">
+//                                         <Box 
+//                                             background="bg-fill-tertiary" 
+//                                             padding="100" 
+//                                             borderRadius="100"
+//                                         >
+//                                             <Text variant="bodySm" tone="subdued" alignment="center">
+//                                                 Live Preview
+//                                             </Text>
+//                                         </Box>
+//                                         <Box 
+//                                             padding="600" 
+//                                             background="bg-surface" 
+//                                             borderRadius="400"
+//                                             borderWidth="025"
+//                                             borderColor="border"
+//                                         >
+//                                             <form onSubmit={handleFormSubmit}>
+//                                                 <BlockStack gap="500">
+//                                                     <BlockStack gap="200">
+//                                                         <Text variant="heading2xl" as="h1">
+//                                                             {formName || "Form Title"}
+//                                                         </Text>
+//                                                         {formDescription && (
+//                                                             <Text as="p" variant="bodyLg" tone="subdued">
+//                                                                 {formDescription}
+//                                                             </Text>
+//                                                         )}
+//                                                     </BlockStack>
+
+//                                                     {fields.length === 0 ? (
+//                                                         <Box padding="800">
+//                                                             <BlockStack gap="300">
+//                                                                 <Text 
+//                                                                     variant="bodyLg" 
+//                                                                     tone="subdued" 
+//                                                                     alignment="center"
+//                                                                     fontWeight="semibold"
+//                                                                 >
+//                                                                     No fields added yet
+//                                                                 </Text>
+//                                                                 <Text 
+//                                                                     variant="bodySm" 
+//                                                                     tone="subdued" 
+//                                                                     alignment="center"
+//                                                                 >
+//                                                                     Add fields from the left panel to see them here
+//                                                                 </Text>
+//                                                             </BlockStack>
+//                                                         </Box>
+//                                                     ) : (
+//                                                         <BlockStack gap="400">
+//                                                             {fields.map((f) => (
+//                                                                 <BlockStack key={f._id} gap="200">
+//                                                                     <Text 
+//                                                                         as="label" 
+//                                                                         variant="bodyMd" 
+//                                                                         fontWeight="semibold"
+//                                                                     >
+//                                                                         {f.label || "Untitled Field"} 
+//                                                                         {f.required && (
+//                                                                             <Text as="span" tone="critical"> *</Text>
+//                                                                         )}
+//                                                                     </Text>
+
+//                                                                     {/* Text, Email, Number fields */}
+//                                                                     {["text", "email", "number"].includes(f.type) && (
+//                                                                         <TextField 
+//                                                                             type={f.type} 
+//                                                                             placeholder={f.placeholder}
+//                                                                             value={formData[f._id] || ""}
+//                                                                             onChange={(value) => handleFieldChange(f._id, value)}
+//                                                                             autoComplete="off"
+//                                                                         />
+//                                                                     )}
+
+//                                                                     {/* Textarea */}
+//                                                                     {f.type === "textarea" && (
+//                                                                         <TextField 
+//                                                                             multiline={4} 
+//                                                                             placeholder={f.placeholder}
+//                                                                             value={formData[f._id] || ""}
+//                                                                             onChange={(value) => handleFieldChange(f._id, value)}
+//                                                                             autoComplete="off"
+//                                                                         />
+//                                                                     )}
+
+//                                                                     {/* Dropdown */}
+//                                                                     {f.type === "dropdown" && (
+//                                                                         <Select 
+//                                                                             options={[
+//                                                                                 { label: "Select an option", value: "" }, 
+//                                                                                 ...f.options.map(opt => ({ 
+//                                                                                     label: opt.label, 
+//                                                                                     value: opt.value 
+//                                                                                 }))
+//                                                                             ]}
+//                                                                             value={formData[f._id] || ""}
+//                                                                             onChange={(value) => handleFieldChange(f._id, value)}
+//                                                                         />
+//                                                                     )}
+
+//                                                                     {/* Radio Group */}
+//                                                                     {f.type === "radio" && (
+//                                                                         <BlockStack gap="200">
+//                                                                             {f.options.map((opt, i) => (
+//                                                                                 <InlineStack key={i} gap="200" blockAlign="start">
+//                                                                                     <input 
+//                                                                                         type="radio" 
+//                                                                                         name={`field-${f._id}`} 
+//                                                                                         value={opt.value}
+//                                                                                         checked={formData[f._id] === opt.value}
+//                                                                                         onChange={(e) => handleFieldChange(f._id, e.target.value)}
+//                                                                                         id={`field-${f._id}-${i}`}
+//                                                                                         style={{ marginTop: '2px' }}
+//                                                                                     />
+//                                                                                     <Text 
+//                                                                                         as="label" 
+//                                                                                         htmlFor={`field-${f._id}-${i}`} 
+//                                                                                         variant="bodyMd"
+//                                                                                     >
+//                                                                                         {opt.label}
+//                                                                                     </Text>
+//                                                                                 </InlineStack>
+//                                                                             ))}
+//                                                                         </BlockStack>
+//                                                                     )}
+
+//                                                                     {/* Checkbox Group */}
+//                                                                     {f.type === "checkbox" && (
+//                                                                         <BlockStack gap="200">
+//                                                                             {f.options.map((opt, i) => (
+//                                                                                 <Checkbox 
+//                                                                                     key={i} 
+//                                                                                     label={opt.label}
+//                                                                                     checked={(formData[f._id] || []).includes(opt.value)}
+//                                                                                     onChange={(checked) => handleCheckboxChange(f._id, opt.value, checked)}
+//                                                                                 />
+//                                                                             ))}
+//                                                                         </BlockStack>
+//                                                                     )}
+//                                                                 </BlockStack>
+//                                                             ))}
+
+//                                                             <Box paddingBlockStart="300">
+//                                                                 <Button 
+//                                                                     variant="primary" 
+//                                                                     submit
+//                                                                     size="large"
+//                                                                     fullWidth
+//                                                                     loading={isSubmitting}
+//                                                                 >
+//                                                                     {submitButtonIcon} {submitButtonText}
+//                                                                 </Button>
+//                                                             </Box>
+//                                                         </BlockStack>
+//                                                     )}
+//                                                 </BlockStack>
+//                                             </form>
+//                                         </Box>
+//                                     </BlockStack>
+//                                 </Card>
+//                             </Box>
+//                         </Grid.Cell>
+//                     </Grid>
+//                 </BlockStack>
+
+//                 {/* Add/Edit Field Modal */}
+//                 <Modal
+//                     open={isModalOpen}
+//                     onClose={closeModal}
+//                     title={modalMode === "add" ? "Add New Field" : "Edit Field"}
+//                     primaryAction={{ content: "Save Field", onAction: handleModalSave }}
+//                     secondaryActions={[{ content: "Cancel", onAction: closeModal }]}
+//                 >
+//                     <Modal.Section>
+//                         <FormLayout>
+//                             <TextField
+//                                 label="Field Label"
+//                                 placeholder="e.g., Full Name, Phone Number"
+//                                 value={currentField.label}
+//                                 onChange={(value) => updateCurrentField("label", value)}
+//                                 autoComplete="off"
+//                                 helpText="The label that appears above this field"
+//                             />
+
+//                             <Select
+//                                 label="Field Type"
+//                                 options={[
+//                                     { label: "Text Input", value: "text" },
+//                                     { label: "Email Input", value: "email" },
+//                                     { label: "Number Input", value: "number" },
+//                                     { label: "Textarea", value: "textarea" },
+//                                     { label: "Dropdown Select", value: "dropdown" },
+//                                     { label: "Radio Group", value: "radio" },
+//                                     { label: "Checkbox Group", value: "checkbox" },
+//                                 ]}
+//                                 value={currentField.type}
+//                                 onChange={(value) => updateCurrentField("type", value)}
+//                                 helpText="Select the type of input for this field"
+//                             />
+
+//                             {["text", "email", "number", "textarea"].includes(currentField.type) && (
+//                                 <TextField
+//                                     label="Placeholder Text"
+//                                     placeholder="e.g., Enter your email address"
+//                                     value={currentField.placeholder}
+//                                     onChange={(value) => updateCurrentField("placeholder", value)}
+//                                     autoComplete="off"
+//                                     helpText="Hint text shown inside the field"
+//                                 />
+//                             )}
+
+//                             <Checkbox
+//                                 label="Required Field"
+//                                 checked={currentField.required}
+//                                 onChange={(checked) => updateCurrentField("required", checked)}
+//                                 helpText={
+//                                     currentField.type === "email" 
+//                                         ? "Email fields are always required" 
+//                                         : "Users must fill this field before submitting"
+//                                 }
+//                                 disabled={currentField.type === "email"}
+//                             />
+
+//                             {["dropdown", "radio", "checkbox"].includes(currentField.type) && (
+//                                 <Box 
+//                                     padding="400" 
+//                                     background="bg-surface-secondary" 
+//                                     borderRadius="300"
+//                                 >
+//                                     <BlockStack gap="400">
+//                                         <InlineStack align="space-between" blockAlign="center">
+//                                             <Text variant="bodyMd" fontWeight="semibold">
+//                                                 Options
+//                                             </Text>
+//                                             <Button size="slim" onClick={addOption}>
+//                                                 Add Option
+//                                             </Button>
+//                                         </InlineStack>
+
+//                                         {currentField.options.length === 0 ? (
+//                                             <Text variant="bodySm" tone="subdued">
+//                                                 No options added yet. Click "Add Option" to create choices for this field.
+//                                             </Text>
+//                                         ) : (
+//                                             <BlockStack gap="200">
+//                                                 {currentField.options.map((opt, i) => (
+//                                                     <Box 
+//                                                         key={i} 
+//                                                         padding="300" 
+//                                                         background="bg-surface" 
+//                                                         borderRadius="200"
+//                                                     >
+//                                                         <BlockStack gap="200">
+//                                                             <InlineStack align="space-between">
+//                                                                 <Text variant="bodyMd" fontWeight="semibold">
+//                                                                     Option {i + 1}
+//                                                                 </Text>
+//                                                                 <InlineStack gap="100">
+//                                                                     <Button 
+//                                                                         size="slim" 
+//                                                                         onClick={() => editOption(i)}
+//                                                                     >
+//                                                                         <Icon source={EditIcon} tone="base" />
+//                                                                     </Button>
+//                                                                     <Button 
+//                                                                         size="slim" 
+//                                                                         tone="critical" 
+//                                                                         onClick={() => deleteOption(i)}
+//                                                                     >
+//                                                                         <Icon source={DeleteIcon} tone="base" />
+//                                                                     </Button>
+//                                                                 </InlineStack>
+//                                                             </InlineStack>
+//                                                             <InlineGrid columns={2} gap="200">
+//                                                                 <Box>
+//                                                                     <BlockStack gap="100">
+//                                                                         <Text variant="bodySm" tone="subdued">
+//                                                                             Display Label
+//                                                                         </Text>
+//                                                                         <Text variant="bodyMd" fontWeight="medium">
+//                                                                             {opt.label}
+//                                                                         </Text>
+//                                                                     </BlockStack>
+//                                                                 </Box>
+//                                                                 <Box>
+//                                                                     <BlockStack gap="100">
+//                                                                         <Text variant="bodySm" tone="subdued">
+//                                                                             Saved Value
+//                                                                         </Text>
+//                                                                         <Text variant="bodyMd" fontWeight="medium">
+//                                                                             {opt.value}
+//                                                                         </Text>
+//                                                                     </BlockStack>
+//                                                                 </Box>
+//                                                             </InlineGrid>
+//                                                         </BlockStack>
+//                                                     </Box>
+//                                                 ))}
+//                                             </BlockStack>
+//                                         )}
+//                                     </BlockStack>
+//                                 </Box>
+//                             )}
+//                         </FormLayout>
+//                     </Modal.Section>
+//                 </Modal>
+
+//                 {/* Validation Popup Modal */}
+//                 <Modal
+//                     open={validationPopup.isOpen}
+//                     onClose={closeValidationPopup}
+//                     title="Validation Error"
+//                     primaryAction={{
+//                         content: "OK",
+//                         onAction: closeValidationPopup
+//                     }}
+//                 >
+//                     <Modal.Section>
+//                         <Text variant="bodyMd">{validationPopup.message}</Text>
+//                     </Modal.Section>
+//                 </Modal>
+
+//                 {/* Confirmation Popup Modal */}
+//                 <Modal
+//                     open={confirmationPopup.isOpen}
+//                     onClose={closeConfirmationPopup}
+//                     title={confirmationPopup.title}
+//                     primaryAction={{
+//                         content: "Confirm",
+//                         onAction: handleConfirmAction,
+//                         destructive: true
+//                     }}
+//                     secondaryActions={[{
+//                         content: "Cancel",
+//                         onAction: closeConfirmationPopup
+//                     }]}
+//                 >
+//                     <Modal.Section>
+//                         <Text variant="bodyMd">{confirmationPopup.message}</Text>
+//                     </Modal.Section>
+//                 </Modal>
+
+//                 {/* Option Input Popup Modal */}
+//                 <Modal
+//                     open={optionInputPopup.isOpen}
+//                     onClose={closeOptionInputPopup}
+//                     title={optionInputPopup.mode === "add" ? "Add Option" : "Edit Option"}
+//                     primaryAction={{
+//                         content: "Save Option",
+//                         onAction: handleSaveOption
+//                     }}
+//                     secondaryActions={[{
+//                         content: "Cancel",
+//                         onAction: closeOptionInputPopup
+//                     }]}
+//                 >
+//                     <Modal.Section>
+//                         <FormLayout>
+//                             <TextField
+//                                 label="Option Label (Display Text)"
+//                                 placeholder="e.g., Small, Medium, Large"
+//                                 value={optionInputPopup.label}
+//                                 onChange={(value) => setOptionInputPopup({
+//                                     ...optionInputPopup, 
+//                                     label: value,
+//                                     value: optionInputPopup.mode === "add" && !optionInputPopup.value 
+//                                         ? value.toLowerCase().replace(/\s+/g, "_")
+//                                         : optionInputPopup.value
+//                                 })}
+//                                 autoComplete="off"
+//                                 helpText="This is what users will see in the form"
+//                             />
+//                             <TextField
+//                                 label="Option Value (Saved Value)"
+//                                 placeholder="e.g., small, medium, large"
+//                                 value={optionInputPopup.value}
+//                                 onChange={(value) => setOptionInputPopup({...optionInputPopup, value: value})}
+//                                 autoComplete="off"
+//                                 helpText="This value will be saved in the database"
+//                             />
+//                         </FormLayout>
+//                     </Modal.Section>
+//                 </Modal>
+//             </Page>
+//         </AppProvider>
+//     );
+// }
+
+
+
+
+
+import { useState, useEffect, useRef } from "react";
 import { authenticate } from "../shopify.server";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "react-router";
@@ -11718,10 +13837,11 @@ import {
     Modal,
     FormLayout,
     Icon,
+    Spinner,
 } from "@shopify/polaris";
 import enTranslations from "@shopify/polaris/locales/en.json";
 import {
-    EditIcon, DeleteIcon
+    EditIcon, DeleteIcon, ChevronUpIcon, ChevronDownIcon, DragHandleIcon
 } from '@shopify/polaris-icons';
 
 export const loader = async ({ request }) => {
@@ -11744,27 +13864,28 @@ export const loader = async ({ request }) => {
 };
 
 export default function CustomizeForm() {
-    const [formName, setFormName] = useState("Contact");
-    const [formDescription, setFormDescription] = useState("");
+    const [formName, setFormName] = useState("Contact Form");
+    const [formDescription, setFormDescription] = useState("Please fill out the form below and we'll get back to you soon.");
     const [submitButtonText, setSubmitButtonText] = useState("Submit");
     const [submitButtonIcon, setSubmitButtonIcon] = useState("");
     const [isSaving, setIsSaving] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
+    const [modalMode, setModalMode] = useState("add");
     const [selectedFieldId, setSelectedFieldId] = useState(null);
     const [saveMessage, setSaveMessage] = useState(null);
-    const [formSubmissionTitle, setFormSubmissionTitle] = useState("");
-    const [successDescription, setSuccessDescription] = useState("");
+    const [formSubmissionTitle, setFormSubmissionTitle] = useState("Thank You!");
+    const [successDescription, setSuccessDescription] = useState("Your form has been submitted successfully. We'll be in touch soon!");
     const { shop } = useLoaderData();
     const [fields, setFields] = useState([]);
     
-    // Validation popup state
+    // ✅ NEW: Debounce timer reference
+    const reorderTimeoutRef = useRef(null);
+    
     const [validationPopup, setValidationPopup] = useState({
         isOpen: false,
         message: ""
     });
 
-    // Confirmation popup state
     const [confirmationPopup, setConfirmationPopup] = useState({
         isOpen: false,
         title: "",
@@ -11772,7 +13893,6 @@ export default function CustomizeForm() {
         onConfirm: null
     });
 
-    // Current field being edited/added
     const [currentField, setCurrentField] = useState({
         label: "",
         type: "text",
@@ -11780,6 +13900,17 @@ export default function CustomizeForm() {
         required: false,
         options: [],
     });
+
+    const [optionInputPopup, setOptionInputPopup] = useState({
+        isOpen: false,
+        mode: "add",
+        editIndex: null,
+        label: "",
+        value: ""
+    });
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formData, setFormData] = useState({});
 
     // Fetch existing fields
     const fetchFields = async () => {
@@ -11799,7 +13930,15 @@ export default function CustomizeForm() {
         fetchFields();
     }, [shop.id]);
 
-    // Show validation popup
+    // ✅ Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (reorderTimeoutRef.current) {
+                clearTimeout(reorderTimeoutRef.current);
+            }
+        };
+    }, []);
+
     const showValidationPopup = (message) => {
         setValidationPopup({
             isOpen: true,
@@ -11807,7 +13946,6 @@ export default function CustomizeForm() {
         });
     };
 
-    // Close validation popup
     const closeValidationPopup = () => {
         setValidationPopup({
             isOpen: false,
@@ -11815,7 +13953,6 @@ export default function CustomizeForm() {
         });
     };
 
-    // Show confirmation popup
     const showConfirmationPopup = (title, message, onConfirm) => {
         setConfirmationPopup({
             isOpen: true,
@@ -11825,7 +13962,6 @@ export default function CustomizeForm() {
         });
     };
 
-    // Close confirmation popup
     const closeConfirmationPopup = () => {
         setConfirmationPopup({
             isOpen: false,
@@ -11835,7 +13971,6 @@ export default function CustomizeForm() {
         });
     };
 
-    // Handle confirmation action
     const handleConfirmAction = () => {
         if (confirmationPopup.onConfirm) {
             confirmationPopup.onConfirm();
@@ -11843,7 +13978,6 @@ export default function CustomizeForm() {
         closeConfirmationPopup();
     };
 
-    // Open Add Field Modal
     const openAddModal = () => {
         setModalMode("add");
         setCurrentField({
@@ -11857,7 +13991,6 @@ export default function CustomizeForm() {
         setIsModalOpen(true);
     };
 
-    // Open Edit Field Modal - With proper error handling
     const openEditModal = async (fieldId) => {
         const fieldToEdit = fields.find((f) => f._id === fieldId);
 
@@ -11886,7 +14019,6 @@ export default function CustomizeForm() {
                 });
                 setIsModalOpen(true);
             } else {
-                // API failed, use existing data from fields array
                 console.warn("API call failed, using existing field data");
                 setModalMode("edit");
                 setSelectedFieldId(fieldId);
@@ -11900,7 +14032,6 @@ export default function CustomizeForm() {
                 setIsModalOpen(true);
             }
         } catch (error) {
-            // Network error, use existing data from fields array
             console.error("Error fetching field data:", error);
             setModalMode("edit");
             setSelectedFieldId(fieldId);
@@ -11915,7 +14046,6 @@ export default function CustomizeForm() {
         }
     };
 
-    // Close Modal
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedFieldId(null);
@@ -11928,7 +14058,6 @@ export default function CustomizeForm() {
         });
     };
 
-    // API: Add new field
     const addFieldAPI = async () => {
         try {
             const shopIdOnly = shop.id.split("/").pop();
@@ -11942,10 +14071,9 @@ export default function CustomizeForm() {
             );
 
             if (response.ok) {
-                const result = await response.json();
                 setSaveMessage({ type: "success", text: "✅ Field added successfully!" });
                 setTimeout(() => setSaveMessage(null), 5000);
-                await fetchFields(); // Refresh fields
+                await fetchFields();
                 closeModal();
             } else {
                 const errText = await response.text();
@@ -11959,7 +14087,6 @@ export default function CustomizeForm() {
         }
     };
 
-    // API: Update field
     const updateFieldAPI = async () => {
         try {
             const shopIdOnly = shop.id.split("/").pop();
@@ -11975,7 +14102,7 @@ export default function CustomizeForm() {
             if (response.ok) {
                 setSaveMessage({ type: "success", text: "✅ Field updated successfully!" });
                 setTimeout(() => setSaveMessage(null), 5000);
-                await fetchFields(); // Refresh fields
+                await fetchFields();
                 closeModal();
             } else {
                 const errText = await response.text();
@@ -11989,7 +14116,6 @@ export default function CustomizeForm() {
         }
     };
 
-    // API: Delete field
     const deleteFieldAPI = async (fieldId) => {
         showConfirmationPopup(
             "Delete Field",
@@ -12005,7 +14131,7 @@ export default function CustomizeForm() {
                     if (response.ok) {
                         setSaveMessage({ type: "success", text: "✅ Field deleted successfully!" });
                         setTimeout(() => setSaveMessage(null), 5000);
-                        await fetchFields(); // Refresh fields without reload
+                        await fetchFields();
                     } else {
                         const errText = await response.text();
                         setSaveMessage({ type: "error", text: `❌ Error deleting field: ${errText}` });
@@ -12020,20 +14146,17 @@ export default function CustomizeForm() {
         );
     };
 
-    // Validate field data before saving
     const validateFieldData = () => {
         if (!currentField.label.trim()) {
             showValidationPopup("Please enter a field label");
             return false;
         }
 
-        // Check if email field is required
         if (currentField.type === "email" && !currentField.required) {
             showValidationPopup("Email field must be marked as required");
             return false;
         }
 
-        // Validate dropdown, radio, and checkbox options
         if (["dropdown", "radio", "checkbox"].includes(currentField.type)) {
             if (currentField.options.length === 0) {
                 showValidationPopup(`Please add at least one option for ${currentField.type} field`);
@@ -12044,7 +14167,6 @@ export default function CustomizeForm() {
         return true;
     };
 
-    // Handle Save in Modal
     const handleModalSave = () => {
         if (!validateFieldData()) {
             return;
@@ -12057,24 +14179,13 @@ export default function CustomizeForm() {
         }
     };
 
-    // Update current field state
     const updateCurrentField = (key, value) => {
-        // If type is changed to email, automatically set required to true
         if (key === "type" && value === "email") {
             setCurrentField({ ...currentField, [key]: value, required: true });
         } else {
             setCurrentField({ ...currentField, [key]: value });
         }
     };
-
-    // Add option to current field
-    const [optionInputPopup, setOptionInputPopup] = useState({
-        isOpen: false,
-        mode: "add", // "add" or "edit"
-        editIndex: null,
-        label: "",
-        value: ""
-    });
 
     const openAddOptionPopup = () => {
         setOptionInputPopup({
@@ -12142,12 +14253,10 @@ export default function CustomizeForm() {
         openAddOptionPopup();
     };
 
-    // Edit option
     const editOption = (index) => {
         openEditOptionPopup(index);
     };
 
-    // Delete option
     const deleteOption = (index) => {
         showConfirmationPopup(
             "Delete Option",
@@ -12159,8 +14268,22 @@ export default function CustomizeForm() {
         );
     };
 
-    // Save entire form config
+    const validateForm = () => {
+        const hasEmailField = fields.some(field => field.type === "email");
+        
+        if (!hasEmailField) {
+            showValidationPopup("Form must contain at least one Email field before saving.");
+            return false;
+        }
+
+        return true;
+    };
+
     async function saveFormConfig() {
+        if (!validateForm()) {
+            return;
+        }
+
         setIsSaving(true);
         const payload = {
             storeName: shop.myshopifyDomain,
@@ -12197,7 +14320,156 @@ export default function CustomizeForm() {
         }
     }
 
-    // Get field icon
+    // ✅ NEW: Debounced field order update
+    const updateFieldOrderDebounced = (orderedFields) => {
+        // Clear previous timeout
+        if (reorderTimeoutRef.current) {
+            clearTimeout(reorderTimeoutRef.current);
+        }
+
+        // Set new timeout - API call થશે 1 second પછી
+        reorderTimeoutRef.current = setTimeout(async () => {
+            try {
+                const shopIdOnly = shop.id.split("/").pop();
+                const fieldIds = orderedFields.map(f => f._id.toString());
+                
+                const response = await fetch(
+                    `http://localhost:5000/api/merchant/${shopIdOnly}/form/fields/reorder`,
+                    {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ fieldIds }),
+                    }
+                );
+
+                if (response.ok) {
+                    setSaveMessage({ type: "success", text: "✅ Field order updated!" });
+                    setTimeout(() => setSaveMessage(null), 3000);
+                } else {
+                    const errText = await response.text();
+                    console.error("Reorder error:", errText);
+                    setSaveMessage({ type: "error", text: "❌ Failed to update order" });
+                    setTimeout(() => setSaveMessage(null), 3000);
+                }
+            } catch (err) {
+                console.error("Error updating field order:", err);
+                setSaveMessage({ type: "error", text: "❌ Network error" });
+                setTimeout(() => setSaveMessage(null), 3000);
+            }
+        }, 1000); // 1 second wait
+    };
+
+    // ✅ UPDATED: Move field up
+    const moveFieldUp = (index) => {
+        if (index === 0) return;
+        
+        const newFields = [...fields];
+        [newFields[index - 1], newFields[index]] = [newFields[index], newFields[index - 1]];
+        setFields(newFields);
+        
+        // Call debounced update
+        updateFieldOrderDebounced(newFields);
+    };
+
+    // ✅ UPDATED: Move field down
+    const moveFieldDown = (index) => {
+        if (index === fields.length - 1) return;
+        
+        const newFields = [...fields];
+        [newFields[index], newFields[index + 1]] = [newFields[index + 1], newFields[index]];
+        setFields(newFields);
+        
+        // Call debounced update
+        updateFieldOrderDebounced(newFields);
+    };
+
+    const handleFieldChange = (fieldId, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [fieldId]: value
+        }));
+    };
+
+    const handleCheckboxChange = (fieldId, optionValue, checked) => {
+        setFormData(prev => {
+            const currentValues = prev[fieldId] || [];
+            if (checked) {
+                return {
+                    ...prev,
+                    [fieldId]: [...currentValues, optionValue]
+                };
+            } else {
+                return {
+                    ...prev,
+                    [fieldId]: currentValues.filter(v => v !== optionValue)
+                };
+            }
+        });
+    };
+
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        const missingRequiredFields = fields.filter(field => {
+            if (!field.required) return false;
+            const value = formData[field._id];
+            return !value || (Array.isArray(value) && value.length === 0) || value.trim() === "";
+        });
+
+        if (missingRequiredFields.length > 0) {
+            const fieldNames = missingRequiredFields.map(f => f.label).join(", ");
+            showValidationPopup(`Please fill in the following required fields: ${fieldNames}`);
+            setIsSubmitting(false);
+            return;
+        }
+
+        const emailField = fields.find(f => f.type === "email");
+        const emailValue = emailField ? formData[emailField._id] : null;
+
+        try {
+            const shopIdOnly = shop.id.split("/").pop();
+            const response = await fetch(
+                `http://localhost:5000/api/merchant/${shopIdOnly}/form/submit`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        formData: formData,
+                        email: emailValue,
+                        formName: formName,
+                        shopDomain: shop.myshopifyDomain
+                    }),
+                }
+            );
+
+            if (response.ok) {
+                setSaveMessage({ 
+                    type: "success", 
+                    title: formSubmissionTitle, 
+                    text: successDescription 
+                });
+                setTimeout(() => setSaveMessage(null), 5000);
+                setFormData({});
+            } else {
+                const errText = await response.text();
+                setSaveMessage({ 
+                    type: "error", 
+                    text: `❌ Error submitting form: ${errText}` 
+                });
+                setTimeout(() => setSaveMessage(null), 5000);
+            }
+        } catch (error) {
+            setSaveMessage({ 
+                type: "error", 
+                text: `❌ Network error: ${error.message}` 
+            });
+            setTimeout(() => setSaveMessage(null), 5000);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     function getFieldIcon(type) {
         const icons = {
             text: "A",
@@ -12213,56 +14485,227 @@ export default function CustomizeForm() {
 
     return (
         <AppProvider i18n={enTranslations}>
-            <Page title="Form Builder">
+            <Page 
+                title="Form Builder"
+                subtitle="Create and customize your contact form"
+            >
                 <BlockStack gap="500">
                     <Grid>
-                        {/* Left Column */}
+                        {/* Left Column - Form Builder */}
                         <Grid.Cell columnSpan={{ xs: 6, sm: 6, md: 7, lg: 7, xl: 7 }}>
-                            <BlockStack gap="400">
-                                {/* Form Settings */}
+                            <BlockStack gap="500">
+                                {/* Form Settings Card */}
                                 <Card>
-                                    <BlockStack gap="400">
-                                        <Text variant="headingMd" as="h2">Form</Text>
-                                        <TextField label="Title" value={formName} onChange={setFormName} autoComplete="off" maxLength={120} showCharacterCount />
-                                        <TextField label="Content" value={formDescription} onChange={setFormDescription} multiline={3} autoComplete="off" maxLength={120} showCharacterCount />
-                                        <TextField label="Form Submission Title" value={formSubmissionTitle} onChange={setFormSubmissionTitle} autoComplete="off" />
-                                        <TextField label="Success Description" value={successDescription} onChange={setSuccessDescription} multiline={3} autoComplete="off" />
+                                    <BlockStack gap="500">
+                                        <Text variant="headingLg" as="h2">Form Settings</Text>
+                                        <BlockStack gap="400">
+                                            <TextField 
+                                                label="Form Title" 
+                                                value={formName} 
+                                                onChange={setFormName} 
+                                                autoComplete="off" 
+                                                maxLength={120} 
+                                                showCharacterCount 
+                                                helpText="The main heading displayed on your form"
+                                            />
+                                            <TextField 
+                                                label="Form Description" 
+                                                value={formDescription} 
+                                                onChange={setFormDescription} 
+                                                multiline={3} 
+                                                autoComplete="off" 
+                                                maxLength={250} 
+                                                showCharacterCount 
+                                                helpText="Brief description or instructions for form users"
+                                            />
+                                            <InlineGrid columns={2} gap="400">
+                                                <TextField 
+                                                    label="Success Message Title" 
+                                                    value={formSubmissionTitle} 
+                                                    onChange={setFormSubmissionTitle} 
+                                                    autoComplete="off" 
+                                                    helpText="Title shown after successful submission"
+                                                />
+                                                <TextField 
+                                                    label="Submit Button Text" 
+                                                    value={submitButtonText} 
+                                                    onChange={setSubmitButtonText} 
+                                                    autoComplete="off"
+                                                    helpText="Text displayed on the submit button"
+                                                />
+                                            </InlineGrid>
+                                            <TextField 
+                                                label="Success Message Description" 
+                                                value={successDescription} 
+                                                onChange={setSuccessDescription} 
+                                                multiline={2} 
+                                                autoComplete="off" 
+                                                helpText="Message shown to users after form submission"
+                                            />
+                                        </BlockStack>
+                                        <Box paddingBlockStart="200">
+                                            <Button 
+                                                variant="primary" 
+                                                size="large"
+                                                onClick={saveFormConfig} 
+                                                disabled={isSaving} 
+                                                loading={isSaving}
+                                            >
+                                                Save Form Configuration
+                                            </Button>
+                                        </Box>
                                     </BlockStack>
-                                    <div style={{ marginTop: "10px" }}>
-                                        <Button variant="primary" tone={isSaving ? "subdued" : "success"} onClick={saveFormConfig} disabled={isSaving} loading={isSaving}>Save Form</Button>
-                                    </div>
                                 </Card>
 
-
-                                {/* Fields Section */}
+                                {/* Fields Management Card */}
                                 <Card>
-                                    <BlockStack gap="400">
+                                    <BlockStack gap="500">
                                         <InlineStack align="space-between" blockAlign="center">
-                                            <Text variant="headingMd" as="h2">Fields</Text>
-                                            <Button variant="primary" size="slim" onClick={openAddModal}>Add Form Field</Button>
+                                            <BlockStack gap="100">
+                                                <Text variant="headingLg" as="h2">Form Fields</Text>
+                                                <Text variant="bodySm" tone="subdued">
+                                                    Add and organize fields for your form. Use arrows to reorder.
+                                                </Text>
+                                            </BlockStack>
+                                            <Button 
+                                                variant="primary" 
+                                                onClick={openAddModal}
+                                            >
+                                                Add Field
+                                            </Button>
                                         </InlineStack>
 
-                                        <BlockStack gap="200">
+                                        <BlockStack gap="300">
                                             {fields.length === 0 ? (
-                                                <Banner tone="info">No fields added yet. Click "Add Form Field" to start building your form.</Banner>
+                                                <Box padding="600">
+                                                    <Banner tone="info">
+                                                        <BlockStack gap="200">
+                                                            <Text variant="bodyMd" fontWeight="semibold">No fields yet</Text>
+                                                            <Text variant="bodyMd">Click "Add Field" to start building your form. Remember to add at least one email field!</Text>
+                                                        </BlockStack>
+                                                    </Banner>
+                                                </Box>
                                             ) : (
-                                                <BlockStack gap="200">
-                                                    {fields.map((field) => (
-                                                        <Box key={field._id} padding="300" background="bg-surface" borderRadius="200">
-                                                            <InlineStack gap="300" align="space-between" blockAlign="center">
-                                                                <InlineStack gap="300" blockAlign="center">
-                                                                    <Text variant="bodyMd" tone="subdued" fontWeight="medium">{getFieldIcon(field.type)}</Text>
-                                                                    <Text variant="bodyMd" fontWeight="medium">{field.label || "Untitled Field"} {field.required && <Text as="span" tone="critical">*</Text>}</Text>
+                                                <BlockStack gap="300">
+                                                    {fields.map((field, index) => (
+                                                        <Box 
+                                                            key={field._id} 
+                                                            padding="400" 
+                                                            background="bg-surface-secondary" 
+                                                            borderRadius="300" 
+                                                            borderWidth="025" 
+                                                            borderColor="border-secondary"
+                                                        >
+                                                            <InlineStack gap="400" align="space-between" blockAlign="center" wrap={false}>
+                                                                <InlineStack gap="400" blockAlign="center" wrap={false}>
+                                                                    <Box>
+                                                                        <Icon source={DragHandleIcon} tone="subdued" />
+                                                                    </Box>
+                                                                    <Box 
+                                                                        background="bg-fill-info" 
+                                                                        padding="300" 
+                                                                        borderRadius="200"
+                                                                        minWidth="40px"
+                                                                    >
+                                                                        <Text 
+                                                                            variant="headingMd" 
+                                                                            tone="text-inverse" 
+                                                                            fontWeight="bold" 
+                                                                            alignment="center"
+                                                                        >
+                                                                            {getFieldIcon(field.type)}
+                                                                        </Text>
+                                                                    </Box>
+                                                                    <BlockStack gap="100">
+                                                                        <InlineStack gap="200" blockAlign="center" wrap={false}>
+                                                                            <Text variant="headingSm" fontWeight="semibold">
+                                                                                {field.label || "Untitled Field"}
+                                                                            </Text>
+                                                                            {field.required && (
+                                                                                <Box 
+                                                                                    background="bg-fill-critical" 
+                                                                                    padding="025" 
+                                                                                    paddingInlineStart="200"
+                                                                                    paddingInlineEnd="200"
+                                                                                    borderRadius="100"
+                                                                                >
+                                                                                    <Text 
+                                                                                        as="span" 
+                                                                                        variant="bodySm" 
+                                                                                        fontWeight="semibold" 
+                                                                                        tone="text-inverse"
+                                                                                    >
+                                                                                        Required
+                                                                                    </Text>
+                                                                                </Box>
+                                                                            )}
+                                                                            {field.type === "email" && (
+                                                                                <Box 
+                                                                                    background="bg-fill-success" 
+                                                                                    padding="025" 
+                                                                                    paddingInlineStart="200"
+                                                                                    paddingInlineEnd="200"
+                                                                                    borderRadius="100"
+                                                                                >
+                                                                                    <Text 
+                                                                                        as="span" 
+                                                                                        variant="bodySm" 
+                                                                                        fontWeight="semibold" 
+                                                                                        tone="text-inverse"
+                                                                                    >
+                                                                                        Email
+                                                                                    </Text>
+                                                                                </Box>
+                                                                            )}
+                                                                        </InlineStack>
+                                                                        <Text variant="bodySm" tone="subdued">
+                                                                            {field.type.charAt(0).toUpperCase() + field.type.slice(1)} field
+                                                                            {field.placeholder && ` • ${field.placeholder}`}
+                                                                        </Text>
+                                                                    </BlockStack>
                                                                 </InlineStack>
-                                                                <InlineStack gap="200">
-                                                                    <Button plain onClick={() => openEditModal(field._id)}> <Icon
-                                                                        source={EditIcon}
-                                                                        tone="base"
-                                                                    /></Button>
-                                                                    <Button plain tone="critical" onClick={() => deleteFieldAPI(field._id)}> <Icon
-                                                                        source={DeleteIcon}
-                                                                        tone="base"
-                                                                    /></Button>
+
+                                                                <InlineStack gap="100" wrap={false}>
+                                                                    <Button 
+                                                                        plain 
+                                                                        onClick={() => moveFieldUp(index)}
+                                                                        disabled={index === 0}
+                                                                        accessibilityLabel="Move field up"
+                                                                    >
+                                                                        <Icon source={ChevronUpIcon} tone="base" />
+                                                                    </Button>
+                                                                    <Button 
+                                                                        plain 
+                                                                        onClick={() => moveFieldDown(index)}
+                                                                        disabled={index === fields.length - 1}
+                                                                        accessibilityLabel="Move field down"
+                                                                    >
+                                                                        <Icon source={ChevronDownIcon} tone="base" />
+                                                                    </Button>
+                                                                    <Box 
+                                                                        borderInlineStartWidth="025" 
+                                                                        borderColor="border" 
+                                                                        paddingInlineStart="200"
+                                                                        marginInlineStart="100"
+                                                                    >
+                                                                        <InlineStack gap="100">
+                                                                            <Button 
+                                                                                plain 
+                                                                                onClick={() => openEditModal(field._id)}
+                                                                                accessibilityLabel="Edit field"
+                                                                            >
+                                                                                <Icon source={EditIcon} tone="base" />
+                                                                            </Button>
+                                                                            <Button 
+                                                                                plain 
+                                                                                tone="critical" 
+                                                                                onClick={() => deleteFieldAPI(field._id)}
+                                                                                accessibilityLabel="Delete field"
+                                                                            >
+                                                                                <Icon source={DeleteIcon} tone="base" />
+                                                                            </Button>
+                                                                        </InlineStack>
+                                                                    </Box>
                                                                 </InlineStack>
                                                             </InlineStack>
                                                         </Box>
@@ -12270,44 +14713,187 @@ export default function CustomizeForm() {
                                                 </BlockStack>
                                             )}
                                         </BlockStack>
+
+                                        {fields.length > 0 && (
+                                            <Banner tone="info">
+                                                <Text variant="bodySm">
+                                                    💡 Tip: Use the arrow buttons to reorder fields. Only fields marked as "Required" must be filled before submission.
+                                                </Text>
+                                            </Banner>
+                                        )}
                                     </BlockStack>
                                 </Card>
 
-                                {/* Save Message */}
-                                {saveMessage && <Banner title={saveMessage.title} tone={saveMessage.type === "success" ? "success" : "critical"}>{saveMessage.text}</Banner>}
-
-                                {/* Save Button */}
+                                {saveMessage && (
+                                    <Banner 
+                                        title={saveMessage.title} 
+                                        tone={saveMessage.type === "success" ? "success" : "critical"}
+                                        onDismiss={() => setSaveMessage(null)}
+                                    >
+                                        {saveMessage.text}
+                                    </Banner>
+                                )}
                             </BlockStack>
                         </Grid.Cell>
 
-                        {/* Right Column - Preview */}
+                        {/* Right Column - Live Preview */}
                         <Grid.Cell columnSpan={{ xs: 6, sm: 6, md: 5, lg: 5, xl: 5 }}>
-                            <Box position="sticky" top="16px">
+                            <Box position="sticky" insetBlockStart="400">
                                 <Card>
                                     <BlockStack gap="400">
-                                        <Box padding="500" background="bg-surface" borderRadius="300">
-                                            <BlockStack gap="400">
-                                                <Text variant="headingLg" as="h1">{formName || "Form Title"}</Text>
-                                                {formDescription && <Text as="p" tone="subdued">{formDescription}</Text>}
-
-                                                {fields.length === 0 ? (
-                                                    <Box padding="800"><Text variant="bodyMd" tone="subdued" alignment="center">No fields added yet. Click "Add Form Field" to start building your form.</Text></Box>
-                                                ) : (
-                                                    <BlockStack gap="400">
-                                                        {fields.map((f) => (
-                                                            <BlockStack key={f._id} gap="200">
-                                                                <Text as="label" variant="bodyMd" fontWeight="semibold">{f.label || "Untitled Field"} {f.required && <Text as="span" tone="critical">*</Text>}</Text>
-                                                                {["text", "email", "number"].includes(f.type) && <TextField type={f.type} placeholder={f.placeholder} name={`field-${f._id}`} autoComplete="off" disabled />}
-                                                                {f.type === "textarea" && <TextField multiline={4} placeholder={f.placeholder} name={`field-${f._id}`} autoComplete="off" disabled />}
-                                                                {f.type === "dropdown" && <Select name={`field-${f._id}`} options={[{ label: "Select an option", value: "" }, ...f.options.map(opt => ({ label: opt.label, value: opt.value }))]} disabled />}
-                                                                {f.type === "radio" && <BlockStack gap="200">{f.options.map((opt, i) => (<InlineStack key={i} gap="200" align="start"><input type="radio" name={`field-${f._id}`} value={opt.value} id={`field-${f._id}-${i}`} disabled /><Text as="label" htmlFor={`field-${f._id}-${i}`} variant="bodyMd">{opt.label}</Text></InlineStack>))}</BlockStack>}
-                                                                {f.type === "checkbox" && <BlockStack gap="200">{f.options.map((opt, i) => (<Checkbox key={i} label={opt.label} checked={false} disabled />))}</BlockStack>}
-                                                            </BlockStack>
-                                                        ))}
-                                                        <Button variant="primary" disabled fullWidth>{submitButtonIcon} {submitButtonText}</Button>
+                                        <Box 
+                                            background="bg-fill-tertiary" 
+                                            padding="100" 
+                                            borderRadius="100"
+                                        >
+                                            <Text variant="bodySm" tone="subdued" alignment="center">
+                                                Live Preview
+                                            </Text>
+                                        </Box>
+                                        <Box 
+                                            padding="600" 
+                                            background="bg-surface" 
+                                            borderRadius="400"
+                                            borderWidth="025"
+                                            borderColor="border"
+                                        >
+                                            <form onSubmit={handleFormSubmit}>
+                                                <BlockStack gap="500">
+                                                    <BlockStack gap="200">
+                                                        <Text variant="heading2xl" as="h1">
+                                                            {formName || "Form Title"}
+                                                        </Text>
+                                                        {formDescription && (
+                                                            <Text as="p" variant="bodyLg" tone="subdued">
+                                                                {formDescription}
+                                                            </Text>
+                                                        )}
                                                     </BlockStack>
-                                                )}
-                                            </BlockStack>
+
+                                                    {fields.length === 0 ? (
+                                                        <Box padding="800">
+                                                            <BlockStack gap="300">
+                                                                <Text 
+                                                                    variant="bodyLg" 
+                                                                    tone="subdued" 
+                                                                    alignment="center"
+                                                                    fontWeight="semibold"
+                                                                >
+                                                                    No fields added yet
+                                                                </Text>
+                                                                <Text 
+                                                                    variant="bodySm" 
+                                                                    tone="subdued" 
+                                                                    alignment="center"
+                                                                >
+                                                                    Add fields from the left panel to see them here
+                                                                </Text>
+                                                            </BlockStack>
+                                                        </Box>
+                                                    ) : (
+                                                        <BlockStack gap="400">
+                                                            {fields.map((f) => (
+                                                                <BlockStack key={f._id} gap="200">
+                                                                    <Text 
+                                                                        as="label" 
+                                                                        variant="bodyMd" 
+                                                                        fontWeight="semibold"
+                                                                    >
+                                                                        {f.label || "Untitled Field"} 
+                                                                        {f.required && (
+                                                                            <Text as="span" tone="critical"> *</Text>
+                                                                        )}
+                                                                    </Text>
+
+                                                                    {["text", "email", "number"].includes(f.type) && (
+                                                                        <TextField 
+                                                                            type={f.type} 
+                                                                            placeholder={f.placeholder}
+                                                                            value={formData[f._id] || ""}
+                                                                            onChange={(value) => handleFieldChange(f._id, value)}
+                                                                            autoComplete="off"
+                                                                        />
+                                                                    )}
+
+                                                                    {f.type === "textarea" && (
+                                                                        <TextField 
+                                                                            multiline={4} 
+                                                                            placeholder={f.placeholder}
+                                                                            value={formData[f._id] || ""}
+                                                                            onChange={(value) => handleFieldChange(f._id, value)}
+                                                                            autoComplete="off"
+                                                                        />
+                                                                    )}
+
+                                                                    {f.type === "dropdown" && (
+                                                                        <Select 
+                                                                            options={[
+                                                                                { label: "Select an option", value: "" }, 
+                                                                                ...f.options.map(opt => ({ 
+                                                                                    label: opt.label, 
+                                                                                    value: opt.value 
+                                                                                }))
+                                                                            ]}
+                                                                            value={formData[f._id] || ""}
+                                                                            onChange={(value) => handleFieldChange(f._id, value)}
+                                                                        />
+                                                                    )}
+
+                                                                    {f.type === "radio" && (
+                                                                        <BlockStack gap="200">
+                                                                            {f.options.map((opt, i) => (
+                                                                                <InlineStack key={i} gap="200" blockAlign="start">
+                                                                                    <input 
+                                                                                        type="radio" 
+                                                                                        name={`field-${f._id}`} 
+                                                                                        value={opt.value}
+                                                                                        checked={formData[f._id] === opt.value}
+                                                                                        onChange={(e) => handleFieldChange(f._id, e.target.value)}
+                                                                                        id={`field-${f._id}-${i}`}
+                                                                                        style={{ marginTop: '2px' }}
+                                                                                    />
+                                                                                    <Text 
+                                                                                        as="label" 
+                                                                                        htmlFor={`field-${f._id}-${i}`} 
+                                                                                        variant="bodyMd"
+                                                                                    >
+                                                                                        {opt.label}
+                                                                                    </Text>
+                                                                                </InlineStack>
+                                                                            ))}
+                                                                        </BlockStack>
+                                                                    )}
+
+                                                                    {f.type === "checkbox" && (
+                                                                        <BlockStack gap="200">
+                                                                            {f.options.map((opt, i) => (
+                                                                                <Checkbox 
+                                                                                    key={i} 
+                                                                                    label={opt.label}
+                                                                                    checked={(formData[f._id] || []).includes(opt.value)}
+                                                                                    onChange={(checked) => handleCheckboxChange(f._id, opt.value, checked)}
+                                                                                />
+                                                                            ))}
+                                                                        </BlockStack>
+                                                                    )}
+                                                                </BlockStack>
+                                                            ))}
+
+                                                            <Box paddingBlockStart="300">
+                                                                <Button 
+                                                                    variant="primary" 
+                                                                    submit
+                                                                    size="large"
+                                                                    fullWidth
+                                                                    loading={isSubmitting}
+                                                                >
+                                                                    {submitButtonIcon} {submitButtonText}
+                                                                </Button>
+                                                            </Box>
+                                                        </BlockStack>
+                                                    )}
+                                                </BlockStack>
+                                            </form>
                                         </Box>
                                     </BlockStack>
                                 </Card>
@@ -12316,19 +14902,19 @@ export default function CustomizeForm() {
                     </Grid>
                 </BlockStack>
 
-                {/* Add/Edit Field Modal */}
+                {/* All Modals - કોઈ ફેરફાર નથી */}
                 <Modal
                     open={isModalOpen}
                     onClose={closeModal}
                     title={modalMode === "add" ? "Add New Field" : "Edit Field"}
-                    primaryAction={{ content: "Save", onAction: handleModalSave }}
+                    primaryAction={{ content: "Save Field", onAction: handleModalSave }}
                     secondaryActions={[{ content: "Cancel", onAction: closeModal }]}
                 >
                     <Modal.Section>
                         <FormLayout>
                             <TextField
                                 label="Field Label"
-                                placeholder="Enter field label"
+                                placeholder="e.g., Full Name, Phone Number"
                                 value={currentField.label}
                                 onChange={(value) => updateCurrentField("label", value)}
                                 autoComplete="off"
@@ -12354,7 +14940,7 @@ export default function CustomizeForm() {
                             {["text", "email", "number", "textarea"].includes(currentField.type) && (
                                 <TextField
                                     label="Placeholder Text"
-                                    placeholder="Enter placeholder"
+                                    placeholder="e.g., Enter your email address"
                                     value={currentField.placeholder}
                                     onChange={(value) => updateCurrentField("placeholder", value)}
                                     autoComplete="off"
@@ -12366,44 +14952,91 @@ export default function CustomizeForm() {
                                 label="Required Field"
                                 checked={currentField.required}
                                 onChange={(checked) => updateCurrentField("required", checked)}
-                                helpText={currentField.type === "email" ? "Email fields are always required" : "Users must fill this field before submitting"}
+                                helpText={
+                                    currentField.type === "email" 
+                                        ? "Email fields are always required" 
+                                        : "Users must fill this field before submitting"
+                                }
                                 disabled={currentField.type === "email"}
                             />
 
                             {["dropdown", "radio", "checkbox"].includes(currentField.type) && (
-                                <Box padding="400" background="bg-surface-secondary" borderRadius="200">
-                                    <BlockStack gap="300">
-                                        <Text variant="bodyMd" fontWeight="semibold">Options</Text>
+                                <Box 
+                                    padding="400" 
+                                    background="bg-surface-secondary" 
+                                    borderRadius="300"
+                                >
+                                    <BlockStack gap="400">
+                                        <InlineStack align="space-between" blockAlign="center">
+                                            <Text variant="bodyMd" fontWeight="semibold">
+                                                Options
+                                            </Text>
+                                            <Button size="slim" onClick={addOption}>
+                                                Add Option
+                                            </Button>
+                                        </InlineStack>
+
                                         {currentField.options.length === 0 ? (
-                                            <Text variant="bodySm" tone="subdued">No options added yet. Click "Add Option" below to add choices.</Text>
+                                            <Text variant="bodySm" tone="subdued">
+                                                No options added yet. Click "Add Option" to create choices for this field.
+                                            </Text>
                                         ) : (
                                             <BlockStack gap="200">
                                                 {currentField.options.map((opt, i) => (
-                                                    <Box key={i} padding="200" background="bg-surface" borderRadius="100">
+                                                    <Box 
+                                                        key={i} 
+                                                        padding="300" 
+                                                        background="bg-surface" 
+                                                        borderRadius="200"
+                                                    >
                                                         <BlockStack gap="200">
                                                             <InlineStack align="space-between">
-                                                                <Text variant="bodyMd" fontWeight="semibold">Option {i + 1}</Text>
+                                                                <Text variant="bodyMd" fontWeight="semibold">
+                                                                    Option {i + 1}
+                                                                </Text>
                                                                 <InlineStack gap="100">
-                                                                    <Button size="slim" onClick={() => editOption(i)}> <Icon
-                                                                        source={EditIcon}
-                                                                        tone="base"
-                                                                    /></Button>
-                                                                    <Button size="slim" tone="critical" onClick={() => deleteOption(i)}><Icon
-                                                                        source={DeleteIcon}
-                                                                        tone="base"
-                                                                    /></Button>
+                                                                    <Button 
+                                                                        size="slim" 
+                                                                        onClick={() => editOption(i)}
+                                                                    >
+                                                                        <Icon source={EditIcon} tone="base" />
+                                                                    </Button>
+                                                                    <Button 
+                                                                        size="slim" 
+                                                                        tone="critical" 
+                                                                        onClick={() => deleteOption(i)}
+                                                                    >
+                                                                        <Icon source={DeleteIcon} tone="base" />
+                                                                    </Button>
                                                                 </InlineStack>
                                                             </InlineStack>
                                                             <InlineGrid columns={2} gap="200">
-                                                                <TextField value={opt.label} readOnly autoComplete="off" label="Label (Display)" />
-                                                                <TextField value={opt.value} readOnly autoComplete="off" label="Value (Saved)" />
+                                                                <Box>
+                                                                    <BlockStack gap="100">
+                                                                        <Text variant="bodySm" tone="subdued">
+                                                                            Display Label
+                                                                        </Text>
+                                                                        <Text variant="bodyMd" fontWeight="medium">
+                                                                            {opt.label}
+                                                                        </Text>
+                                                                    </BlockStack>
+                                                                </Box>
+                                                                <Box>
+                                                                    <BlockStack gap="100">
+                                                                        <Text variant="bodySm" tone="subdued">
+                                                                            Saved Value
+                                                                        </Text>
+                                                                        <Text variant="bodyMd" fontWeight="medium">
+                                                                            {opt.value}
+                                                                        </Text>
+                                                                    </BlockStack>
+                                                                </Box>
                                                             </InlineGrid>
                                                         </BlockStack>
                                                     </Box>
                                                 ))}
                                             </BlockStack>
                                         )}
-                                        <Button size="slim" onClick={addOption}>Add Option</Button>
                                     </BlockStack>
                                 </Box>
                             )}
@@ -12411,7 +15044,6 @@ export default function CustomizeForm() {
                     </Modal.Section>
                 </Modal>
 
-                {/* Validation Popup Modal */}
                 <Modal
                     open={validationPopup.isOpen}
                     onClose={closeValidationPopup}
@@ -12426,7 +15058,6 @@ export default function CustomizeForm() {
                     </Modal.Section>
                 </Modal>
 
-                {/* Confirmation Popup Modal */}
                 <Modal
                     open={confirmationPopup.isOpen}
                     onClose={closeConfirmationPopup}
@@ -12446,13 +15077,12 @@ export default function CustomizeForm() {
                     </Modal.Section>
                 </Modal>
 
-                {/* Option Input Popup Modal */}
                 <Modal
                     open={optionInputPopup.isOpen}
                     onClose={closeOptionInputPopup}
                     title={optionInputPopup.mode === "add" ? "Add Option" : "Edit Option"}
                     primaryAction={{
-                        content: "Save",
+                        content: "Save Option",
                         onAction: handleSaveOption
                     }}
                     secondaryActions={[{
@@ -12466,9 +15096,15 @@ export default function CustomizeForm() {
                                 label="Option Label (Display Text)"
                                 placeholder="e.g., Small, Medium, Large"
                                 value={optionInputPopup.label}
-                                onChange={(value) => setOptionInputPopup({...optionInputPopup, label: value})}
+                                onChange={(value) => setOptionInputPopup({
+                                    ...optionInputPopup, 
+                                    label: value,
+                                    value: optionInputPopup.mode === "add" && !optionInputPopup.value 
+                                        ? value.toLowerCase().replace(/\s+/g, "_")
+                                        : optionInputPopup.value
+                                })}
                                 autoComplete="off"
-                                helpText="This is what users will see"
+                                helpText="This is what users will see in the form"
                             />
                             <TextField
                                 label="Option Value (Saved Value)"
@@ -12476,7 +15112,7 @@ export default function CustomizeForm() {
                                 value={optionInputPopup.value}
                                 onChange={(value) => setOptionInputPopup({...optionInputPopup, value: value})}
                                 autoComplete="off"
-                                helpText="This is the value that will be saved in the database"
+                                helpText="This value will be saved in the database"
                             />
                         </FormLayout>
                     </Modal.Section>
