@@ -15180,8 +15180,8 @@ export const loader = async ({ request }) => {
 };
 
 export default function CustomizeForm() {
-    const [formName, setFormName] = useState("Contact Form");
-    const [formDescription, setFormDescription] = useState("Please fill out the form below and we'll get back to you soon.");
+    const [formName, setFormName] = useState("");
+    const [formDescription, setFormDescription] = useState("");
     const [submitButtonText, setSubmitButtonText] = useState("Submit");
     const [submitButtonIcon, setSubmitButtonIcon] = useState("");
     const [isSaving, setIsSaving] = useState(false);
@@ -15239,6 +15239,9 @@ export default function CustomizeForm() {
             const response = await fetch(`http://localhost:5000/api/users/${shopIdOnly}`);
             if (response.ok) {
                 const result = await response.json();
+                setFormName(result.data.formTemplates.name)
+                setFormDescription(result.data.formTemplates.description);
+                setSuccessDescription(result.data.formTemplates.successdescription);
                 setFields(result.data.formTemplates.fields || []);
             }
         } catch (error) {
@@ -15894,7 +15897,7 @@ export default function CustomizeForm() {
                                                 showCharacterCount 
                                                 helpText="Brief description or instructions for form users"
                                             />
-                                            <InlineGrid columns={2} gap="400">
+                                            {/* <InlineGrid columns={2} gap="400">
                                                 <TextField 
                                                     label="Success Message Title" 
                                                     value={formSubmissionTitle} 
@@ -15903,7 +15906,7 @@ export default function CustomizeForm() {
                                                     helpText="Title shown after successful submission"
                                                 />
                                                
-                                            </InlineGrid>
+                                            </InlineGrid> */}
                                             <TextField 
                                                 label="Success Message Description" 
                                                 value={successDescription} 

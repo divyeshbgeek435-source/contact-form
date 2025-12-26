@@ -192,8 +192,8 @@
   {% form 'contact', id: 'simpleContactForm' %}
 
   <!-- Pre-submit success or error messages -->
-  {% if form.posted_successfully? %}
-    <p class="success-msg">🎉 Thank you! We will contact you soon.</p>
+   {% if form.posted_successfully? %}
+    <p class="success-msg" id="staticSuccessMsg"></p>
   {% endif %}
 
   {% if form.errors %}
