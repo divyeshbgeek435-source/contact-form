@@ -49,7 +49,7 @@ export const loader = async ({ request }) => {
 
     // ====== SEND FULL DATA TO BACKEND API ======
     const backendResponse = await fetch(
-      "http://localhost:5000/api/createMerchant",
+      "https://nodejs-qvgm.onrender.com/api/merchant/create",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -98,7 +98,7 @@ export const loader = async ({ request }) => {
 
       try {
         const egetid = await fetch(
-          `http://localhost:5000/api/users/${shopIdOnly}`
+          `https://nodejs-qvgm.onrender.com/api/merchant/users/${shopIdOnly}`
         );
 
         const jsonResponse = await egetid.json(); // ⬅️ DIRECTLY JSON
@@ -112,7 +112,7 @@ export const loader = async ({ request }) => {
 
           // ==== CALL UPDATE API ====
           const updateResponse = await fetch(
-            `http://localhost:5000/api/updateMerchant/${updateId}`,
+            `https://nodejs-qvgm.onrender.com/api/merchant/update/${updateId}`,
             {
               method: "PUT",
               headers: { "Content-Type": "application/json" },

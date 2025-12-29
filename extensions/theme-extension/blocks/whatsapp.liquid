@@ -77,7 +77,7 @@
     const isThemeEditor = window.Shopify && window.Shopify.designMode;
     
     // Fetch merchant WhatsApp number from backend
-    fetch(`http://localhost:5000/api/users/${shopIdOnly}`)
+    fetch(`https://nodejs-qvgm.onrender.com/api/users/${shopIdOnly}`)
       .then(response => response.json())
       .then(data => {
         if (data && data.data && data.data.whatsappNumber && data.data.currencyCode) {
@@ -165,7 +165,7 @@
 {% assign padding = block.settings.padding | default: 20 %}
 {% assign bg_color = block.settings.bg_color | default: '#25D366' %}
 {% assign hover_scale = block.settings.hover_scale | default: 1.1 %}
-{% assign z_index = block.settings.z_index | default: 9999 %}
+{% assign z_index = block.settings.z_index | default: 99999999 %}
 
 <style>
   #whatsapp-chat-icon-{{ block.id }} {
@@ -249,7 +249,7 @@
     
     const isThemeEditor = window.Shopify && window.Shopify.designMode;
     
-    fetch(`http://localhost:5000/api/users/${shopIdOnly}`)
+    fetch(`https://nodejs-qvgm.onrender.com/api/merchant/users/${shopIdOnly}`)
       .then(response => response.json())
       .then(data => {
         if (data && data.data && data.data.whatsappNumber && data.data.currencyCode) {

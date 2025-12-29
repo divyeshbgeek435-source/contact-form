@@ -380,7 +380,7 @@ export default function Index({ loaderData }) {
 
   useEffect(() => {
     if (!shopId) return;
-    fetch(`http://localhost:5000/api/pipeline/contacts/${shopId}`)
+    fetch(`https://nodejs-qvgm.onrender.com/api/contact/pipeline/${shopId}`)
       .then((res) => res.json())
       .then((data) => setStats(data))
       .catch((err) => console.error(err));
