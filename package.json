@@ -46,7 +46,7 @@
         "figlet": "^1.9.4",
         "framer-motion": "^12.23.25",
         "isbot": "^5.1.31",
-        "libphonenumber-js": "^1.12.31",
+        "libphonenumber-js": "^1.12.33",
         "node-notifier": "^10.0.1",
         "nodemailer": "^7.0.11",
         "or": "^0.2.0",

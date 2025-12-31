@@ -359,11 +359,11 @@
 
 // /* ---------------- PAGE ---------------- */
 // export default function Index({ loaderData }) {
-   
+
 //   if (!loaderData) {
 //     return null;
 //   }
- 
+
 
 //   const { shopId, shopGid, shopName } = loaderData || {};
 
@@ -769,7 +769,7 @@ export const loader = async ({ request }) => {
   const shopId = shopGid.split("/").pop();
   const shopName = json.data.shop.name;
 
-    console.log(shopId,"gernlkhrbehgrbeh")
+  console.log(shopId, "gernlkhrbehgrbeh")
   return { shopId, shopGid, shopName };
 };
 
@@ -877,7 +877,7 @@ const CustomTooltip = ({ active, payload, label }) => {
         <p
           style={{
             margin: "6px 0 0 0",
-            color: "#008060",
+            // color: "#7647FF ",
             fontWeight: 700,
             fontSize: "18px",
           }}
@@ -892,20 +892,31 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 /* ---------------- STATS CARD COMPONENT ---------------- */
 const StatsCard = ({ title, value, subtitle, icon, tone }) => (
-  <Card>
-    <Box padding="400">
-      <BlockStack gap="300">
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          {icon && (
-            <div style={{ margin: "0px" }}>
-              <Icon source={icon} tone="base" />
-            </div>
-          )}
 
+  <Card>
+    <Box  >
+      <BlockStack gap="300">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "2px" }}>
           <Text variant="headingMd" as="h3" tone="subdued">
             {title}
           </Text>
+
+          {icon && (
+            <div style={{
+              marginLeft: "auto",
+              background: "#7647FF",
+              color: "white",
+              borderRadius: "4px",
+              padding: "6px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              <Icon source={icon} />
+            </div>
+          )}
         </div>
+
         <Text variant="heading2xl" as="p" fontWeight="bold">
           {value}
         </Text>
@@ -917,7 +928,11 @@ const StatsCard = ({ title, value, subtitle, icon, tone }) => (
       </BlockStack>
     </Box>
   </Card>
+
+
 );
+
+
 
 /* ---------------- DATE PICKER COMPONENT (MONTH & YEAR ONLY) ---------------- */
 const DatePickerPopover = ({
@@ -1068,11 +1083,11 @@ const DatePickerPopover = ({
 
 /* ---------------- PAGE ---------------- */
 export default function Index({ loaderData }) {
-   
+
   if (!loaderData) {
     return null;
   }
- 
+
 
   const { shopId, shopGid, shopName } = loaderData || {};
 
@@ -1090,7 +1105,7 @@ export default function Index({ loaderData }) {
 
   useEffect(() => {
     if (!shopId) return;
-    
+
     setIsLoadingStats(true);
     fetch(`https://nodejs-qvgm.onrender.com/api/contact/pipeline/${shopId}`)
       .then((res) => res.json())
@@ -1132,7 +1147,7 @@ export default function Index({ loaderData }) {
           >
             <BlockStack gap="400" align="center">
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <Icon source={DataPresentationIcon} tone="base" />
+                {/* <Icon source={DataPresentationIcon} tone="base" /> */}
                 <Spinner accessibilityLabel="Loading analytics" size="large" />
               </div>
               <Text variant="bodyLg" tone="subdued">
@@ -1191,8 +1206,8 @@ export default function Index({ loaderData }) {
     >
       <Box
         style={{
-          padding: "8px 16px",
-          marginBottom: "20px",
+          padding: "8px 10px",
+          marginBottom: "15px",
           borderRadius: "8px",
           transition: "all 0.2s ease",
           backgroundColor: "#ffffff",
@@ -1240,7 +1255,7 @@ export default function Index({ loaderData }) {
         )}
 
         {/* OVERALL STATS */}
-        <InlineGrid columns={{ xs: 1, sm: 2, md: 4 }} gap="400">
+        <InlineGrid columns={{ xs: 1, sm: 2, md: 4 }} gap="500">
           <StatsCard
             title="Total Submissions"
             value={stats.totalForms.toLocaleString()}
@@ -1268,9 +1283,10 @@ export default function Index({ loaderData }) {
           />
         </InlineGrid>
 
+
         {/* CURRENT MONTH - BAR CHART */}
         <Card>
-          <Box padding="400">
+          <Box  >
             <BlockStack gap="400">
               {/* Header with Navigation and Date Picker */}
               <div
@@ -1287,17 +1303,17 @@ export default function Index({ loaderData }) {
                   <Text variant="heading2xl" as="h2">
                     {currentMonth?.month || "Monthly View"}
                   </Text>
-                  <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-                    <Badge tone="success">
+                  {/* <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+                       <Badge>
                       {currentMonth?.totalForms || 0} total submissions
-                    </Badge>
-                    <Badge tone="info">
+                   </Badge>
+                     <Badge >
                       {currentMonth?.avgPerDay || 0} avg per day
-                    </Badge>
+                      </Badge>  
                     <Badge>
                       {currentMonth?.days || 0} days
-                    </Badge>
-                  </div>
+                     </Badge>
+                  </div> */}
                 </BlockStack>
 
                 <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
@@ -1333,7 +1349,7 @@ export default function Index({ loaderData }) {
                 style={{
                   width: "100%",
                   height: "420px",
-                  marginTop: "8px",
+                  marginTop: "3px",
                   outline: "none", // Remove focus outline
                 }}
                 tabIndex={-1} // Remove from tab order
@@ -1343,13 +1359,13 @@ export default function Index({ loaderData }) {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={currentMonthDailyData}
-                    margin={{ top: 20, right: 20, left: 10, bottom: 40 }}
+                    margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e1e3e5" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#7647FF " vertical={false} />
                     <XAxis
                       dataKey="displayDate"
-                      tick={{ fontSize: 10, fill: "#6d7175", fontWeight: 500 }}
-                      stroke="#c9cccf"
+                      tick={{ fontSize: 10, fill: "#7647FF ", fontWeight: 500 }}
+                      stroke="#7647FF "
                       angle={0}
                       textAnchor="middle"
                       height={50}
@@ -1358,15 +1374,15 @@ export default function Index({ loaderData }) {
                     />
                     <YAxis
                       allowDecimals={false}
-                      tick={{ fontSize: 12, fill: "#6d7175" }}
-                      stroke="#c9cccf"
+                      tick={{ fontSize: 12, fill: "#7647FF " }}
+                      stroke="#7647FF "
                       tickLine={false}
                       axisLine={false}
                     />
-                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 128, 96, 0.1)' }} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: '#7547ff10 ' }} />
                     <Bar
                       dataKey="totalForms"
-                      fill="#008060"
+                      fill="#7647FF "
                       radius={[6, 6, 0, 0]}
                       maxBarSize={40}
                     />
@@ -1375,7 +1391,7 @@ export default function Index({ loaderData }) {
               </div>
 
               {/* Month Counter */}
-              <Box paddingBlockStart="300">
+              <Box paddingBlockStart="100">
                 <div
                   style={{
                     display: "flex",

@@ -1547,38 +1547,41 @@ export default function CustomizeForm() {
 
             if (response.ok) {
                 const result = await response.json();
+                const fieldType = result.data.type || "text";
                 setModalMode("edit");
                 setSelectedFieldId(fieldId);
                 setCurrentField({
-                    label: result.data.label || "",
-                    type: result.data.type || "text",
+                    label: fieldType === "email" ? "email" : (result.data.label || ""),
+                    type: fieldType,
                     placeholder: result.data.placeholder || "",
-                    required: result.data.required || false,
+                    required: fieldType === "email" ? true : (result.data.required || false),
                     options: result.data.options || [],
                 });
                 setIsModalOpen(true);
             } else {
                 console.warn("API call failed, using existing field data");
+                const fieldType = fieldToEdit.type || "text";
                 setModalMode("edit");
                 setSelectedFieldId(fieldId);
                 setCurrentField({
-                    label: fieldToEdit.label || "",
-                    type: fieldToEdit.type || "text",
+                    label: fieldType === "email" ? "email" : (fieldToEdit.label || ""),
+                    type: fieldType,
                     placeholder: fieldToEdit.placeholder || "",
-                    required: fieldToEdit.required || false,
+                    required: fieldType === "email" ? true : (fieldToEdit.required || false),
                     options: fieldToEdit.options || [],
                 });
                 setIsModalOpen(true);
             }
         } catch (error) {
             console.error("Error fetching field data:", error);
+            const fieldType = fieldToEdit.type || "text";
             setModalMode("edit");
             setSelectedFieldId(fieldId);
             setCurrentField({
-                label: fieldToEdit.label || "",
-                type: fieldToEdit.type || "text",
+                label: fieldType === "email" ? "email" : (fieldToEdit.label || ""),
+                type: fieldType,
                 placeholder: fieldToEdit.placeholder || "",
-                required: fieldToEdit.required || false,
+                required: fieldType === "email" ? true : (fieldToEdit.required || false),
                 options: fieldToEdit.options || [],
             });
             setIsModalOpen(true);
@@ -1695,14 +1698,20 @@ export default function CustomizeForm() {
     };
 
     const validateFieldData = () => {
-        if (!currentField.label.trim()) {
+        if (currentField.type !== "email" && !currentField.label.trim()) {
             showValidationPopup("Please enter a field label");
             return false;
         }
 
-        if (currentField.type === "email" && !currentField.required) {
-            showValidationPopup("Email field must be marked as required");
-            return false;
+        if (currentField.type === "email") {
+            // Email fields always have " email" as label
+            if (!currentField.label || currentField.label.trim() === "") {
+                setCurrentField({ ...currentField, label: "email" });
+            }
+            // Email fields are always required
+            if (!currentField.required) {
+                setCurrentField({ ...currentField, required: true });
+            }
         }
 
         if (["dropdown", "radio", "checkbox"].includes(currentField.type)) {
@@ -1716,6 +1725,15 @@ export default function CustomizeForm() {
     };
 
     const handleModalSave = () => {
+        // Ensure email fields always have correct label and required status
+        if (currentField.type === "email") {
+            setCurrentField({
+                ...currentField,
+                label: "email",
+                required: true
+            });
+        }
+
         if (!validateFieldData()) {
             return;
         }
@@ -1729,7 +1747,15 @@ export default function CustomizeForm() {
 
     const updateCurrentField = (key, value) => {
         if (key === "type" && value === "email") {
-            setCurrentField({ ...currentField, [key]: value, required: true });
+            setCurrentField({ 
+                ...currentField, 
+                [key]: value, 
+                required: true,
+                label: "email"
+            });
+        } else if (key === "label" && currentField.type === "email") {
+            // Prevent label changes for email fields
+            return;
         } else {
             setCurrentField({ ...currentField, [key]: value });
         }
@@ -2154,7 +2180,7 @@ export default function CustomizeForm() {
                                                                             <Icon source={DragHandleIcon} tone="subdued" />
                                                                         </Box>
                                                                         <Box 
-                                                                            background="bg-fill-info" 
+                                                                        style={{ backgroundColor: "#7647FF" ,padding:"10px",borderRadius:"5px"}}
                                                                             padding="300" 
                                                                             borderRadius="200"
                                                                             minWidth="40px"
@@ -2477,6 +2503,7 @@ export default function CustomizeForm() {
                                 onChange={(value) => updateCurrentField("label", value)}
                                 autoComplete="off"
                                 helpText="The label that appears above this field"
+                                disabled={currentField.type === "email"}
                             />
 
                             <Select
@@ -2488,7 +2515,7 @@ export default function CustomizeForm() {
                                     { label: "Textarea", value: "textarea" },
                                     { label: "Dropdown Select", value: "dropdown" },
                                     { label: "Radio Group", value: "radio" },
-                                    { label: "Checkbox Group", value: "checkbox" },
+                                    // { label: "Checkbox Group", value: "checkbox" },
                                 ]}
                                 value={currentField.type}
                                 onChange={(value) => updateCurrentField("type", value)}
