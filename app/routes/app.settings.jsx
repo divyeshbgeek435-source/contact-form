@@ -1548,7 +1548,7 @@ import {
     Checkbox,
     Spinner,
 } from "@shopify/polaris";
-import { CheckIcon, PhoneIcon, ChevronDownIcon, SearchIcon, ChatIcon,EmailIcon } from "@shopify/polaris-icons";
+import { CheckIcon, PhoneIcon, ChevronDownIcon, SearchIcon, ChatIcon, EmailIcon } from "@shopify/polaris-icons";
 import { parsePhoneNumber, getCountries, getCountryCallingCode } from 'libphonenumber-js';
 import * as flags from 'country-flag-icons/react/3x2';
 
@@ -1671,6 +1671,7 @@ export default function Index() {
     const [mailLoading, setMailLoading] = useState(false);
     const [mailToastMessage, setMailToastMessage] = useState("");
     const [showMailToast, setShowMailToast] = useState(false);
+    const [isSupportHovered, setIsSupportHovered] = useState(false);
 
     const hasUnsavedChanges = useMemo(() => {
         return whatsappNumber !== lastSavedValues.number ||
@@ -2155,15 +2156,15 @@ export default function Index() {
                                             <div style={{
                                                 width: "48px",
                                                 height: "48px",
-                                                borderRadius: "12px", 
+                                                borderRadius: "12px",
                                                 background: "linear-gradient(135deg, #7647FF  0%, #472B99 100%)",
                                                 display: "flex",
                                                 alignItems: "center",
                                                 justifyContent: "center",
-                                               
+
                                             }}>
                                                 <div style={{ color: "white", fontSize: "24px" }}>
-                                                    <Icon source={PhoneIcon}   />
+                                                    <Icon source={PhoneIcon} />
                                                 </div>
                                             </div>
                                             <BlockStack gap="100">
@@ -2176,14 +2177,14 @@ export default function Index() {
                                             </BlockStack>
                                         </InlineStack>
                                         {merchant?.whatsappNumber && (
-                                             <Badge tone="success" size="large">
+                                            <Badge tone="success" size="large">
                                                 <InlineStack gap="100" blockAlign="center">
                                                     <span style={{ fontSize: "12px" }}>✓</span>
                                                     <span>Configured</span>
                                                 </InlineStack>
-                                                 
+
                                             </Badge>
-                                              
+
                                         )}
                                     </InlineStack>
 
@@ -2320,40 +2321,40 @@ export default function Index() {
                                 <Card>
                                     <BlockStack gap="400">
 
-                                         <InlineStack align="space-between" blockAlign="center" wrap={false}>
-                                        <InlineStack gap="300" blockAlign="center">
-                                            <div style={{
-                                               width: "48px",
-                                                height: "48px",
-                                                borderRadius: "12px", 
-                                                background: "linear-gradient(135deg, #7647FF  0%, #472B99 100%)",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                               
-                                            }}>
-                                                <div style={{ color: "white", fontSize: "24px" }}>
-                                                    <Icon source={EmailIcon}   />
+                                        <InlineStack align="space-between" blockAlign="center" wrap={false}>
+                                            <InlineStack gap="300" blockAlign="center">
+                                                <div style={{
+                                                    width: "48px",
+                                                    height: "48px",
+                                                    borderRadius: "12px",
+                                                    background: "linear-gradient(135deg, #7647FF  0%, #472B99 100%)",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+
+                                                }}>
+                                                    <div style={{ color: "white", fontSize: "24px" }}>
+                                                        <Icon source={EmailIcon} />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <BlockStack gap="100">
-                                                <Text variant="headingLg" as="h2" fontWeight="semibold">
-                                                     Email Notification Status
-                                                </Text>
-                                                <Text variant="bodyMd" tone="subdued">
-  Track merchant email delivery status
-                                                </Text>
-                                            </BlockStack>
+                                                <BlockStack gap="100">
+                                                    <Text variant="headingLg" as="h2" fontWeight="semibold">
+                                                        Email Notification Status
+                                                    </Text>
+                                                    <Text variant="bodyMd" tone="subdued">
+                                                        Track merchant email delivery status
+                                                    </Text>
+                                                </BlockStack>
+                                            </InlineStack>
+                                            {mailsent && (
+                                                <Badge tone="success" size="large">
+                                                    <InlineStack gap="100" blockAlign="center">
+                                                        <span style={{ fontSize: "12px" }}>✓</span>
+                                                        <span>Sent</span>
+                                                    </InlineStack>
+                                                </Badge>
+                                            )}
                                         </InlineStack>
-                                        {mailsent && (
-                                       <Badge tone="success" size="large">
-                                                <InlineStack gap="100" blockAlign="center">
-                                                    <span style={{ fontSize: "12px" }}>✓</span>
-                                                    <span>Sent</span>
-                                                </InlineStack>
-                                            </Badge>
-                                        )}
-                                    </InlineStack>
 
 
                                         {/* <InlineStack align="space-between" blockAlign="center">
@@ -2402,16 +2403,16 @@ export default function Index() {
                                             <InlineStack gap="300" blockAlign="center">
                                                 <div style={{
                                                     width: "48px",
-                                                height: "48px",
-                                                borderRadius: "12px", 
-                                                background: "linear-gradient(135deg, #7647FF  0%, #472B99 100%)",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                               
-                                            }}>
+                                                    height: "48px",
+                                                    borderRadius: "12px",
+                                                    background: "linear-gradient(135deg, #7647FF  0%, #472B99 100%)",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+
+                                                }}>
                                                     <div style={{ color: "white", fontSize: "24px" }}>
-                                                        <Icon source={ChatIcon}   />
+                                                        <Icon source={ChatIcon} />
                                                     </div>
                                                 </div>
                                                 <BlockStack gap="100">
@@ -2431,7 +2432,7 @@ export default function Index() {
 
 
                                         <Divider />
- 
+
 
                                         {/* Action Section */}
                                         <div style={{
@@ -2647,6 +2648,64 @@ export default function Index() {
                         </div>
                     </div>
                 )}
+
+                {/* Floating Support Button */}
+                {/* Floating Support Button */}
+                <div
+                    style={{
+                        position: "fixed",
+                        bottom: "24px",
+                        right: "24px",
+                        zIndex: 9999,
+                    }}
+                >
+                    <a
+                        href="mailto:divyesh@gmail.com?subject=Get Support"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ textDecoration: "none" }}
+                    >
+                        <div
+                            onMouseEnter={() => setIsSupportHovered(true)}
+                            onMouseLeave={() => setIsSupportHovered(false)}
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
+                                padding: "14px 20px",
+                                background: "linear-gradient(135deg, #7647FF 0%, #472B99 100%)",
+                                borderRadius: "12px",
+                                color: "white",
+                                fontSize: "15px",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                boxShadow: isSupportHovered
+                                    ? "0 12px 28px rgba(118, 71, 255, 0.4)"
+                                    : "0 6px 16px rgba(118, 71, 255, 0.25)",
+                                transform: isSupportHovered ? "translateY(-3px)" : "translateY(0)",
+                                transition: "all 0.3s ease",
+                            }}
+                        >
+                            <Icon source={EmailIcon} />
+                            <span>Get Support</span>
+                        </div>
+                    </a>
+                </div>
+
+
+                {/* Add CSS animation */}
+                <style>{`
+                    @keyframes fadeIn {
+                        from {
+                            opacity: 0;
+                            transform: translateX(-10px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateX(0);
+                        }
+                    }
+                `}</style>
             </Page>
         </Frame>
     );
