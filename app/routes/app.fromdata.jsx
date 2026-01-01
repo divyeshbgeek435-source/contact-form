@@ -2180,7 +2180,7 @@ export default function CustomizeForm() {
                                                                             <Icon source={DragHandleIcon} tone="subdued" />
                                                                         </Box>
                                                                         <Box 
-                                                                        style={{ backgroundColor: "#7647FF" ,padding:"10px",borderRadius:"5px"}}
+                                                                        style={{ backgroundColor: "#007B60" ,padding:"10px",borderRadius:"5px"}}
                                                                             padding="300" 
                                                                             borderRadius="200"
                                                                             minWidth="40px"

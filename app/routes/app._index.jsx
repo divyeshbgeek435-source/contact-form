@@ -868,7 +868,7 @@ const CustomTooltip = ({ active, payload, label }) => {
           style={{
             margin: 0,
             fontWeight: 600,
-            color: "#202223",
+            color: "#007B60",
             fontSize: "13px",
           }}
         >
@@ -877,7 +877,7 @@ const CustomTooltip = ({ active, payload, label }) => {
         <p
           style={{
             margin: "6px 0 0 0",
-            // color: "#7647FF ",
+            // color: "#007B60 ",
             fontWeight: 700,
             fontSize: "18px",
           }}
@@ -904,7 +904,7 @@ const StatsCard = ({ title, value, subtitle, icon, tone }) => (
           {icon && (
             <div style={{
               marginLeft: "auto",
-              background: "#7647FF",
+              background: "#007B60",
               color: "white",
               borderRadius: "4px",
               padding: "6px",
@@ -1361,11 +1361,11 @@ export default function Index({ loaderData }) {
                     data={currentMonthDailyData}
                     margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#7647FF " vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#007B60 " vertical={false} />
                     <XAxis
                       dataKey="displayDate"
-                      tick={{ fontSize: 10, fill: "#7647FF ", fontWeight: 500 }}
-                      stroke="#7647FF "
+                      tick={{ fontSize: 10, fill: "#007B60 ", fontWeight: 500 }}
+                      stroke="#007B60 "
                       angle={0}
                       textAnchor="middle"
                       height={50}
@@ -1374,15 +1374,15 @@ export default function Index({ loaderData }) {
                     />
                     <YAxis
                       allowDecimals={false}
-                      tick={{ fontSize: 12, fill: "#7647FF " }}
-                      stroke="#7647FF "
+                      tick={{ fontSize: 12, fill: "#007B60 " }}
+                      stroke="#007B60 "
                       tickLine={false}
                       axisLine={false}
                     />
-                    <Tooltip content={<CustomTooltip />} cursor={{ fill: '#7547ff10 ' }} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 123, 70, 0.05) ' }} />
                     <Bar
                       dataKey="totalForms"
-                      fill="#7647FF "
+                      fill="#007B60 "
                       radius={[6, 6, 0, 0]}
                       maxBarSize={40}
                     />

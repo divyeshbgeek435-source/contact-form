@@ -2544,7 +2544,7 @@ export default function Index() {
                   <div
                     style={{
                       marginLeft: "auto",
-                      background: "#7647FF",
+                      background: "#007B60",
                       color: "white",
                       borderRadius: "4px",
                       padding: "6px",
@@ -2579,7 +2579,7 @@ export default function Index() {
 
                   <div style={{
                     marginLeft: "auto",
-                    background: "#7647FF",
+                    background: "#007B60",
                     color: "white",
                     borderRadius: "4px",
                     padding: "6px",
@@ -2608,7 +2608,7 @@ export default function Index() {
 
                   <div style={{
                     marginLeft: "auto",
-                    background: "#7647FF",
+                    background: "#007B60",
                     color: "white",
                     borderRadius: "4px",
                     padding: "6px",
@@ -2636,7 +2636,7 @@ export default function Index() {
                   </Text>
                   <div style={{
                     marginLeft: "auto", 
-                    background: "#7647FF",
+                    background: "#007B60",
                     color: "white",
                     borderRadius: "4px",
                     padding: "6px",
