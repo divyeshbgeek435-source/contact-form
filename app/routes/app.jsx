@@ -169,7 +169,7 @@ export default function App() {
         {/* <s-link href="/app">Home</s-link> */}
         {/* <s-link href="/app/products">products page</s-link> */}
         <s-link href="/app/submissionForm">Submission Form</s-link>
-        <s-link href="/app/fromdata">Form</s-link>
+        <s-link href="/app/formdata">Form</s-link>
         <s-link href="/app/settings">Settings</s-link>
         {/* <s-link href="/app/whatsapp">whatsapp</s-link> */}
       </s-app-nav>
