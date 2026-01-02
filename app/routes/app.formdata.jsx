@@ -1697,6 +1697,11 @@ export default function CustomizeForm() {
         );
     };
 
+    // Helper function to check if an email field already exists
+    const hasEmailField = () => {
+        return fields.some(field => field.type === "email");
+    };
+
     const validateFieldData = () => {
         if (currentField.type !== "email" && !currentField.label.trim()) {
             showValidationPopup("Please enter a field label");
@@ -1711,6 +1716,28 @@ export default function CustomizeForm() {
             // Email fields are always required
             if (!currentField.required) {
                 setCurrentField({ ...currentField, required: true });
+            }
+        }
+
+        // Check for duplicate labels (case-insensitive)
+        if (currentField.type !== "email" && currentField.label.trim()) {
+            const labelToCheck = currentField.label.trim().toLowerCase();
+            const duplicateField = fields.find(field => {
+                // Exclude the current field being edited
+                if (selectedFieldId && field._id === selectedFieldId) {
+                    return false;
+                }
+                // Exclude email fields from duplicate check
+                if (field.type === "email") {
+                    return false;
+                }
+                // Check if label matches (case-insensitive)
+                return field.label && field.label.trim().toLowerCase() === labelToCheck;
+            });
+
+            if (duplicateField) {
+                showValidationPopup(`A field with the label "${currentField.label.trim()}" already exists. Please use a unique label.`);
+                return false;
             }
         }
 
@@ -1747,6 +1774,16 @@ export default function CustomizeForm() {
 
     const updateCurrentField = (key, value) => {
         if (key === "type" && value === "email") {
+            // Prevent adding email field if one already exists (only in add mode)
+            if (modalMode === "add" && hasEmailField()) {
+                showValidationPopup("An email field already exists. Only one email field is allowed per form.");
+                return;
+            }
+            // Prevent changing to email type if one already exists (in edit mode)
+            if (modalMode === "edit" && hasEmailField() && currentField.type !== "email") {
+                showValidationPopup("An email field already exists. Only one email field is allowed per form.");
+                return;
+            }
             setCurrentField({ 
                 ...currentField, 
                 [key]: value, 
@@ -2280,6 +2317,7 @@ export default function CustomizeForm() {
                                                                                     onClick={() => deleteFieldAPI(field._id)}
                                                                                     accessibilityLabel="Delete field"
                                                                                     loading={isDeletingField}
+                                                                                    disabled={field.type === "email"}
                                                                                 >
                                                                                     <Icon source={DeleteIcon} tone="base" />
                                                                                 </Button>
@@ -2510,7 +2548,7 @@ export default function CustomizeForm() {
                                 label="Field Type"
                                 options={[
                                     { label: "Text Input", value: "text" },
-                                    { label: "Email Input", value: "email" },
+                                    ...(hasEmailField() && modalMode === "add" ? [] : [{ label: "Email Input", value: "email" }]),
                                     { label: "Number Input", value: "number" },
                                     { label: "Textarea", value: "textarea" },
                                     { label: "Dropdown Select", value: "dropdown" },
@@ -2520,6 +2558,7 @@ export default function CustomizeForm() {
                                 value={currentField.type}
                                 onChange={(value) => updateCurrentField("type", value)}
                                 helpText="Select the type of input for this field"
+                                disabled={currentField.type === "email" && modalMode === "edit"}
                             />
 
                             {["text", "email", "number", "textarea"].includes(currentField.type) && (
