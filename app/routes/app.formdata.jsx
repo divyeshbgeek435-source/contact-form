@@ -1401,7 +1401,7 @@ export default function CustomizeForm() {
     const [isLoadingFields, setIsLoadingFields] = useState(false);
     const [isAddingField, setIsAddingField] = useState(false);
     const [isUpdatingField, setIsUpdatingField] = useState(false);
-    const [isDeletingField, setIsDeletingField] = useState(false);
+    const [deletingFieldId, setDeletingFieldId] = useState(null);
     
     // Debounce timer reference
     const reorderTimeoutRef = useRef(null);
@@ -1451,8 +1451,10 @@ export default function CustomizeForm() {
             if (response.ok) {
                 const result = await response.json();
 
-                console.log(result)
-                console.log(result.data.formTemplates[0].name)
+                // Only log in development mode or when debugging
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('Fields fetched:', result.data.formTemplates[0].fields?.length || 0, 'fields');
+                }
                 setFormName(result.data.formTemplates[0].name)
                 setFormDescription(result.data.formTemplates[0].description);
                 setSuccessDescription(result.data.formTemplates[0].successdescription);
@@ -1669,7 +1671,13 @@ export default function CustomizeForm() {
             "Delete Field",
             "Are you sure you want to delete this field? This action cannot be undone.",
             async () => {
-                setIsDeletingField(true);
+                // Clear any pending reorder timeout to prevent conflicts
+                if (reorderTimeoutRef.current) {
+                    clearTimeout(reorderTimeoutRef.current);
+                    reorderTimeoutRef.current = null;
+                }
+                
+                setDeletingFieldId(fieldId);
                 try {
                     const shopIdOnly = shop.id.split("/").pop();
                     const response = await fetch(
@@ -1691,7 +1699,7 @@ export default function CustomizeForm() {
                     setSaveMessage({ type: "error", text: `❌ Network error: ${err.message}` });
                     setTimeout(() => setSaveMessage(null), 5000);
                 } finally {
-                    setIsDeletingField(false);
+                    setDeletingFieldId(null);
                 }
             }
         );
@@ -1700,6 +1708,11 @@ export default function CustomizeForm() {
     // Helper function to check if an email field already exists
     const hasEmailField = () => {
         return fields.some(field => field.type === "email");
+    };
+
+    // Helper function to check if a number field already exists
+    const hasNumberField = () => {
+        return fields.some(field => field.type === "number");
     };
 
     const validateFieldData = () => {
@@ -1720,15 +1733,15 @@ export default function CustomizeForm() {
         }
 
         // Check for duplicate labels (case-insensitive)
-        if (currentField.type !== "email" && currentField.label.trim()) {
+        if (currentField.type !== "email" && currentField.type !== "number" && currentField.label.trim()) {
             const labelToCheck = currentField.label.trim().toLowerCase();
             const duplicateField = fields.find(field => {
                 // Exclude the current field being edited
                 if (selectedFieldId && field._id === selectedFieldId) {
                     return false;
                 }
-                // Exclude email fields from duplicate check
-                if (field.type === "email") {
+                // Exclude email and number fields from duplicate check
+                if (field.type === "email" || field.type === "number") {
                     return false;
                 }
                 // Check if label matches (case-insensitive)
@@ -1790,6 +1803,18 @@ export default function CustomizeForm() {
                 required: true,
                 label: "email"
             });
+        } else if (key === "type" && value === "number") {
+            // Prevent adding number field if one already exists (only in add mode)
+            if (modalMode === "add" && hasNumberField()) {
+                showValidationPopup("A number field already exists. Only one number field is allowed per form.");
+                return;
+            }
+            // Prevent changing to number type if one already exists (in edit mode)
+            if (modalMode === "edit" && hasNumberField() && currentField.type !== "number") {
+                showValidationPopup("A number field already exists. Only one number field is allowed per form.");
+                return;
+            }
+            setCurrentField({ ...currentField, [key]: value });
         } else if (key === "label" && currentField.type === "email") {
             // Prevent label changes for email fields
             return;
@@ -2316,8 +2341,8 @@ export default function CustomizeForm() {
                                                                                     tone="critical" 
                                                                                     onClick={() => deleteFieldAPI(field._id)}
                                                                                     accessibilityLabel="Delete field"
-                                                                                    loading={isDeletingField}
-                                                                                    disabled={field.type === "email"}
+                                                                                    loading={deletingFieldId === field._id}
+                                                                                    disabled={field.type === "email" || deletingFieldId !== null}
                                                                                 >
                                                                                     <Icon source={DeleteIcon} tone="base" />
                                                                                 </Button>
@@ -2549,7 +2574,7 @@ export default function CustomizeForm() {
                                 options={[
                                     { label: "Text Input", value: "text" },
                                     ...(hasEmailField() && modalMode === "add" ? [] : [{ label: "Email Input", value: "email" }]),
-                                    { label: "Number Input", value: "number" },
+                                    ...(hasNumberField() && modalMode === "add" ? [] : [{ label: "Number Input", value: "number" }]),
                                     { label: "Textarea", value: "textarea" },
                                     { label: "Dropdown Select", value: "dropdown" },
                                     { label: "Radio Group", value: "radio" },
@@ -2558,7 +2583,7 @@ export default function CustomizeForm() {
                                 value={currentField.type}
                                 onChange={(value) => updateCurrentField("type", value)}
                                 helpText="Select the type of input for this field"
-                                disabled={currentField.type === "email" && modalMode === "edit"}
+                                disabled={(currentField.type === "email" || currentField.type === "number") && modalMode === "edit"}
                             />
 
                             {["text", "email", "number", "textarea"].includes(currentField.type) && (

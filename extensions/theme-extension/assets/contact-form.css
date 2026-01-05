@@ -271,6 +271,18 @@
   transform: translateY(0) !important;
 }
 
+.dynamic-form .submit-btn:disabled,
+.dynamic-form .submit-btn.disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+.dynamic-form .submit-btn.loading {
+  opacity: 0.7 !important;
+  cursor: wait !important;
+}
+
 /* Success and Error Messages */
 .dynamic-form .success-msg {
   padding: 15px !important;
@@ -372,4 +384,16 @@
 .dynamic-form textarea::placeholder {
   color: #999 !important;
   opacity: 1 !important;
+}
+
+/* Hide number input spinner controls */
+.dynamic-form .form-group input[type="number"]::-webkit-inner-spin-button,
+.dynamic-form .form-group input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+  display: none !important;
+}
+
+.dynamic-form .form-group input[type="number"] {
+  -moz-appearance: textfield !important;
 }

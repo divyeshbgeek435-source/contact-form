@@ -2679,10 +2679,7 @@ export default function Index() {
                                 fontSize: "15px",
                                 fontWeight: 600,
                                 cursor: "pointer",
-                                boxShadow: isSupportHovered
-                                    ? "0 12px 28px rgba(118, 71, 255, 0.4)"
-                                    : "0 6px 16px rgba(118, 71, 255, 0.25)",
-                                transform: isSupportHovered ? "translateY(-3px)" : "translateY(0)",
+                               
                                 transition: "all 0.3s ease",
                             }}
                         >

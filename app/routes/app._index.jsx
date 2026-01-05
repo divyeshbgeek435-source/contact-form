@@ -711,6 +711,7 @@
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { useEffect, useState, useCallback } from "react";
+import { Link } from "react-router";
 import {
   Page,
   Card,
@@ -738,6 +739,7 @@ import {
   ArrowRightIcon,          // ✅ Updated
   FormsIcon,                // ✅ Updated
   CalculatorIcon,              // ✅ Updated
+  InfoIcon,
 } from "@shopify/polaris-icons";
 import "@shopify/polaris/build/esm/styles.css";
 
@@ -1097,6 +1099,8 @@ export default function Index({ loaderData }) {
   const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
   const [showLimitAlert, setShowLimitAlert] = useState(false);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [showSetupCard, setShowSetupCard] = useState(true);
+  const [showAssistanceBanner, setShowAssistanceBanner] = useState(true);
 
   // ✅ ALL HOOKS AT THE TOP
   useEffect(() => {
@@ -1132,6 +1136,9 @@ export default function Index({ loaderData }) {
     }
   }, [stats, currentMonthIndex]);
 
+  // Check if this is first time setup (no data)
+  const isFirstTimeSetup = stats && (!stats.graphData || stats.graphData.length === 0 || stats.totalForms === 0);
+
   // ✅ EARLY RETURN AFTER ALL HOOKS - SHOW LOADER WITH ICON
   if (!stats || !isClient || isLoadingStats) {
     return (
@@ -1165,7 +1172,7 @@ export default function Index({ loaderData }) {
   const totalMonths = monthlyData.length;
 
   // Get current month data
-  const currentMonth = monthlyData[currentMonthIndex];
+  const currentMonth = monthlyData.length > 0 ? monthlyData[currentMonthIndex] : null;
   const currentMonthDailyData = currentMonth?.dailyData || [];
 
   // Navigation handlers
@@ -1240,6 +1247,104 @@ export default function Index({ loaderData }) {
 
 
       <BlockStack gap="500">
+       
+        {/* APP SETUP STEPS CARD - Show on first time setup or when manually displayed */}
+        {(isFirstTimeSetup || showSetupCard) && (
+          <Card>
+            <Box padding="500">
+              <BlockStack gap="400">
+                <InlineStack align="space-between" blockAlign="center">
+                  <Text variant="headingLg" as="h2" fontWeight="bold">
+                    App Setup Steps
+                  </Text>
+                  <Button
+                    plain
+                    onClick={() => setShowSetupCard(false)}
+                    accessibilityLabel="Close setup instructions"
+                  >
+                    ×
+                  </Button>
+                </InlineStack>
+                <Divider />
+                <BlockStack gap="400">
+                  <BlockStack gap="200">
+                    <Text variant="bodyMd" as="p" fontWeight="semibold">
+                      1. WhatsApp & App Settings
+                    </Text>
+                    <Text variant="bodySm" as="p" tone="subdued">
+                      Add your WhatsApp number and configure basic app settings.{" "}
+                      <Link 
+                        to="/app/settings"
+                        style={{ 
+                          color: "#0066CC", 
+                          textDecoration: "underline",
+                          cursor: "pointer"
+                        }}
+                      >
+                        Go to Settings
+                      </Link>
+                    </Text>
+                  </BlockStack>
+                  <BlockStack gap="200">
+                    <Text variant="bodyMd" as="p" fontWeight="semibold">
+                      2. Form Setup
+                    </Text>
+                    <Text variant="bodySm" as="p" tone="subdued">
+                      Create and customize your contact form, then add it to any page in edit theme.{" "}
+                      <Link 
+                        to="/app/formdata"
+                        style={{ 
+                          color: "#0066CC", 
+                          textDecoration: "underline",
+                          cursor: "pointer"
+                        }}
+                      >
+                        Create Form
+                      </Link>
+                    </Text>
+                  </BlockStack>
+                  <BlockStack gap="200">
+                    <Text variant="bodyMd" as="p" fontWeight="semibold">
+                      3. View Submissions
+                    </Text>
+                    <Text variant="bodySm" as="p" tone="subdued">
+                      View and export all form submission data anytime.{" "}
+                      <Link 
+                        to="/app/submissionForm"
+                        style={{ 
+                          color: "#0066CC", 
+                          textDecoration: "underline",
+                          cursor: "pointer"
+                        }}
+                      >
+                        View Submissions
+                      </Link>
+                    </Text>
+                  </BlockStack>
+                  <BlockStack gap="200">
+                    <Text variant="bodyMd" as="p" fontWeight="semibold">
+                      4. WhatsApp Floating Button
+                    </Text>
+                    <Text variant="bodySm" as="p" tone="subdued">
+                      Enable the floating button to allow instant chat access.{" "}
+                      <Link 
+                        to="/app/settings"
+                        style={{ 
+                          color: "#0066CC", 
+                          textDecoration: "underline",
+                          cursor: "pointer"
+                        }}
+                      >
+                        Configure Button
+                      </Link>
+                    </Text>
+                  </BlockStack>
+                </BlockStack>
+              </BlockStack>
+            </Box>
+          </Card>
+        )}
+
         {/* ONE MONTH LIMIT ALERT */}
         {showLimitAlert && (
           <Banner

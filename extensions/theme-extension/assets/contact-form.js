@@ -637,16 +637,26 @@ document.addEventListener("DOMContentLoaded", async function () {
     const placeholder = f.placeholder || "";
     let html = "";
 
+    // Check if field has oneTimeUse enabled and if phone number was already submitted
+    let shouldHideField = false;
+    if (f.type === "number" && f.oneTimeUse) {
+      const usedPhoneNumbers = JSON.parse(localStorage.getItem("usedPhoneNumbers") || "[]");
+      // Hide field if any phone number was already used
+      if (usedPhoneNumbers.length > 0) {
+        shouldHideField = true;
+      }
+    }
+
     if (["text","email","number"].includes(f.type)) { 
     const displayLabel = (f.type === "email" && f.label.toLowerCase() === "email") ? "Email" : f.label;
       html = `
-        <div class="form-group">
+        <div class="form-group" ${shouldHideField ? 'style="display: none;"' : ''}>
           <label>${displayLabel}${requiredStar(f)}</label>
           <input 
             id="${f.id}" 
             type="${f.type}" 
             name="${name}"
-            ${f.required ? "required" : ""}
+            ${f.required && !shouldHideField ? "required" : ""}
             placeholder="${placeholder}"
           >
         </div>`;
@@ -789,6 +799,16 @@ document.addEventListener("DOMContentLoaded", async function () {
         const key = f.type === "select" ? "dropdown" : f.type;
         apiData[key][f.label] = value;
         whatsappMsg += `${f.label}: ${value}%0A`;
+        
+        // Save phone number to localStorage if field has oneTimeUse enabled
+        if (f.type === "number" && f.oneTimeUse && value) {
+          const usedPhoneNumbers = JSON.parse(localStorage.getItem("usedPhoneNumbers") || "[]");
+          const phoneNumber = value.trim();
+          if (phoneNumber && !usedPhoneNumbers.includes(phoneNumber)) {
+            usedPhoneNumbers.push(phoneNumber);
+            localStorage.setItem("usedPhoneNumbers", JSON.stringify(usedPhoneNumbers));
+          }
+        }
       }
     });
 
