@@ -2,8 +2,8 @@
     "name": "lean-duplication-app",
     "private": true,
     "scripts": {
-        "build": "shopify build",
-        "dev": "shopify app dev",
+        "build": "remix build",
+        "dev": "remix-serve build",
         "config:link": "shopify app config link",
         "generate": "shopify app generate",
         "deploy": "shopify app deploy",
