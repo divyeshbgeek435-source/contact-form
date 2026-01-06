@@ -2726,13 +2726,13 @@ export default function CustomizeForm() {
                     </Modal.Section>
                 </Modal>
 
-                <Modal   
-                    open={optionInputPopup.isOpen}   
-                    onClose={closeOptionInputPopup}   
+                <Modal
+                    open={optionInputPopup.isOpen}
+                    onClose={closeOptionInputPopup}
                     title={optionInputPopup.mode === "add" ? "Add Option" : "Edit Option"}
-                    primaryAction={{   
-                        content: "Save Option",  
-                        onAction: handleSaveOption  
+                    primaryAction={{
+                        content: "Save Option",
+                        onAction: handleSaveOption
                     }}
                     secondaryActions={[{
                         content: "Cancel",
