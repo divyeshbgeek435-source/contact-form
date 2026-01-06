@@ -13,6 +13,10 @@ RUN npm ci --omit=dev --legacy-peer-deps && npm cache clean --force
 
 COPY . .
 
+RUN npm install -g @remix-run/dev
+
+RUN npm install -g @shopify/cli
+
 RUN npm run build
 
 CMD ["npm", "run", "docker-start"]
