@@ -1,25 +1,21 @@
 FROM node:20-alpine
-RUN apk add --no-cache openssl
 
-EXPOSE 3000
+RUN apk add --no-cache openssl libc6-compat
+
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json ./
 
-# Install all dependencies (including dev for Prisma setup)
-RUN npm ci --legacy-peer-deps && npm cache clean --force
+RUN npm ci --legacy-peer-deps
 
-# Copy the rest of the code
 COPY . .
 
-# Generate Prisma client and run migrations
+# Prisma
 RUN npx prisma generate
-# Only run migrate in production if DB URL is set
-# RUN npx prisma migrate deploy
 
-# Build the app
-RUN npm run build
+# Build Remix
+RUN npx remix build
 
-# Start the app
+EXPOSE 3000
+
 CMD ["npm", "run", "docker-start"]
