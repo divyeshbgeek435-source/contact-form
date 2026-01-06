@@ -13,8 +13,8 @@ COPY . .
 # Prisma
 RUN npx prisma generate
 
-# Build Remix
-RUN npx remix build
+# Build Shopify Remix app (IMPORTANT)
+RUN npm run build
 
 EXPOSE 3000
 
