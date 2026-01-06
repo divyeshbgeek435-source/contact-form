@@ -97,6 +97,7 @@
           
           if (phoneNumber && countryCode) {
             whatsappLink.href = `https://wa.me/${countryCode}${phoneNumber}`;
+            console.log('✅ WhatsApp number retrieved successfully:', `${countryCode}${phoneNumber}`);
           }
         } else if (!isThemeEditor) {
           iconContainer.style.display = 'none';
@@ -265,6 +266,7 @@
           
           if (phoneNumber && countryCode) {
             whatsappLink.href = `https://wa.me/${countryCode}${phoneNumber}`;
+            console.log('✅ WhatsApp number retrieved successfully:', `${countryCode}${phoneNumber}`);
           }
         } else if (!isThemeEditor) {
           iconContainer.style.display = 'none';

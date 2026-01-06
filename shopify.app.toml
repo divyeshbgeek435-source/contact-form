@@ -1,27 +1,20 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "ad182f74a5f7b144bb8188378dd2ac01"
-name = "lean-duplication-app"
+client_id = "d6198a3b447063a43baeac54907647b5"
+name = "Geek: Contact Form to WhatsApp"
 application_url = "https://example.com"
 embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+include_config_on_deploy = true
 
 [webhooks]
 api_version = "2026-01"
 
-  [[webhooks.subscriptions]]
-  topics = [ "app/uninstalled" ]
-  uri = "/webhooks/app/uninstalled"
-
-  [[webhooks.subscriptions]]
-  topics = [ "app/scopes_update" ]
-  uri = "/webhooks/app/scopes_update"
-
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "read_customers,read_orders,read_products,write_customers,write_orders,write_products"
 
 [auth]
 redirect_urls = [ "https://example.com/api/auth" ]
-
-[build]
-automatically_update_urls_on_dev = true

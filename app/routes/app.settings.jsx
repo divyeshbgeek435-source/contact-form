@@ -1548,7 +1548,7 @@ import {
     Checkbox,
     Spinner,
 } from "@shopify/polaris";
-import { CheckIcon, PhoneIcon, ChevronDownIcon, SearchIcon, ChatIcon, EmailIcon } from "@shopify/polaris-icons";
+import { CheckIcon, PhoneIcon, ChevronDownIcon, SearchIcon, ChatIcon, EmailIcon, InfoIcon, DataPresentationIcon } from "@shopify/polaris-icons";
 import { parsePhoneNumber, getCountries, getCountryCallingCode } from 'libphonenumber-js';
 import * as flags from 'country-flag-icons/react/3x2';
 
@@ -2157,7 +2157,7 @@ export default function Index() {
                                                 width: "48px",
                                                 height: "48px",
                                                 borderRadius: "12px",
-                                                 background: "#007B60",
+                                                background: "#007B60",
                                                 display: "flex",
                                                 alignItems: "center",
                                                 justifyContent: "center",
@@ -2327,7 +2327,7 @@ export default function Index() {
                                                     width: "48px",
                                                     height: "48px",
                                                     borderRadius: "12px",
-                                                     background: "#007B60",
+                                                    background: "#007B60",
                                                     display: "flex",
                                                     alignItems: "center",
                                                     justifyContent: "center",
@@ -2405,7 +2405,7 @@ export default function Index() {
                                                     width: "48px",
                                                     height: "48px",
                                                     borderRadius: "12px",
-                                                     background: "#007B60",
+                                                    background: "#007B60",
                                                     display: "flex",
                                                     alignItems: "center",
                                                     justifyContent: "center",
@@ -2649,6 +2649,71 @@ export default function Index() {
                     </div>
                 )}
 
+                 
+
+                <div style={{ display: "flex", gap: "14px", alignItems: "center", fontSize: "14px", justifyContent: "center",
+                    marginTop: "10px" }}>
+                    <a 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        href="/privacy-policy"
+                        style={{ 
+                            textDecoration: "none", 
+                            display: "flex", 
+                            alignItems: "center", 
+                            gap: "8px",
+                            color: "#2563eb"
+                        }}
+                    >
+                        <div style={{
+                            width: "32px",
+                            height: "32px",
+                            borderRadius: "8px",
+                            backgroundColor: "#007B60",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                            color: "white"
+                        }}>
+                            <Icon source={InfoIcon}  />
+                        </div>
+                        <span>Privacy</span>
+                    </a>
+
+                    <a 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        href="mailto:help@value-fly.com"
+                        style={{ 
+                            textDecoration: "none", 
+                            display: "flex", 
+                            alignItems: "center", 
+                            gap: "8px",
+                            color: "#2563eb"
+                        }}
+                    >
+                        <div style={{
+                            width: "32px",
+                            height: "32px",
+                            borderRadius: "8px",
+                            backgroundColor: "#007B60",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                            color: "white"
+                        }}>
+                            <Icon source={EmailIcon}   />
+                        </div>
+                        <span>help@value-fly.com</span>
+                    </a>
+
+                    
+                </div>
+
+
+
                 {/* Floating Support Button */}
                 {/* Floating Support Button */}
                 <div
@@ -2679,7 +2744,7 @@ export default function Index() {
                                 fontSize: "15px",
                                 fontWeight: 600,
                                 cursor: "pointer",
-                               
+
                                 transition: "all 0.3s ease",
                             }}
                         >
